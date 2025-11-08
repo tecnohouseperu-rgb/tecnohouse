@@ -1,32 +1,25 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
-import { cookies } from 'next/headers'
+// lib/supabase/server.ts
+import { cookies } from "next/headers";
+import { createServerClient } from "@supabase/ssr";
 
-export function supabaseServer() {
-  const cookieStore = cookies()
+export function createServerActionClient() {
+  const cookieStore = cookies(); // aquí sí es mutable (en servidores/acciones)
 
-  // En RSC (pages/layout), cookies() es READONLY: get funciona, set/remove solo
-  // funcionarán en Route Handlers o Server Actions (cookies "mutable").
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
         get(name: string) {
-          return cookieStore.get(name)?.value
+          return cookieStore.get(name)?.value;
         },
-        // Estas 2 solo hacen efecto en Server Actions o Route Handlers:
-        set(name: string, value: string, options: CookieOptions) {
-          try {
-            // En RSC no es mutable; en acciones/handlers sí.
-            cookieStore.set({ name, value, ...options })
-          } catch {}
+        set(name: string, value: string, options?: Parameters<typeof cookieStore.set>[2]) {
+          cookieStore.set(name, value, options);
         },
-        remove(name: string, options: CookieOptions) {
-          try {
-            cookieStore.set({ name, value: '', ...options, maxAge: 0 })
-          } catch {}
+        remove(name: string, options?: Parameters<typeof cookieStore.set>[2]) {
+          cookieStore.set(name, "", { ...options, maxAge: 0 });
         },
       },
     }
-  )
+  );
 }
