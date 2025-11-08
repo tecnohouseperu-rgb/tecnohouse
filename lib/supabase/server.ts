@@ -1,14 +1,25 @@
 // lib/supabase/server.ts
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
+import { cookies } from "next/headers";
+import { createServerClient } from "@supabase/ssr";
 
-export function createSupabaseServer() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
-  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+export async function createSupabaseServer() {
+  const cookieStore = await cookies();
 
-  // En Next 16 (RSC) cookies() es ASYNC. @supabase/ssr >=0.5
-  // acepta una función que devuelva cookies() (Promise<ReadonlyRequestCookies>).
-  return createServerClient(url, anon, {
-    cookies, // <-- pásale la función importada, NO la ejecutes aquí
-  })
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value;
+        },
+        set(name: string, value: string, options: CookieOptions) {
+          cookieStore.set(name, value, options);
+        },
+        delete(name: string, options: CookieOptions) {
+          cookieStore.delete(name, options);
+        },
+      },
+    }
+  );
 }
