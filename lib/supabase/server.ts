@@ -1,8 +1,9 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
-export function createSupabaseServer() {
-  const cookieStore = cookies();
+export async function createSupabaseServer() {
+  // En Vercel, cookies() => Promise, así que esperamos
+  const cookieStore = await cookies();
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -13,10 +14,10 @@ export function createSupabaseServer() {
           return cookieStore.get(name)?.value;
         },
         set() {
-          // No permitido en RSC → lo dejamos vacío
+          // RSC: no permitido
         },
         remove() {
-          // No permitido en RSC → lo dejamos vacío
+          // RSC: no permitido
         }
       }
     }
