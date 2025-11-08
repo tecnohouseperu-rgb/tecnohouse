@@ -1,25 +1,14 @@
 // lib/supabase/server.ts
-import { cookies } from "next/headers";
-import { createServerClient } from "@supabase/ssr";
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 
-export function createServerActionClient() {
-  const cookieStore = cookies(); // aquí sí es mutable (en servidores/acciones)
+export function createSupabaseServer() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
-        },
-        set(name: string, value: string, options?: Parameters<typeof cookieStore.set>[2]) {
-          cookieStore.set(name, value, options);
-        },
-        remove(name: string, options?: Parameters<typeof cookieStore.set>[2]) {
-          cookieStore.set(name, "", { ...options, maxAge: 0 });
-        },
-      },
-    }
-  );
+  // En Next 16 (RSC) cookies() es ASYNC. @supabase/ssr >=0.5
+  // acepta una función que devuelva cookies() (Promise<ReadonlyRequestCookies>).
+  return createServerClient(url, anon, {
+    cookies, // <-- pásale la función importada, NO la ejecutes aquí
+  })
 }
