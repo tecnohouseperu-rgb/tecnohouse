@@ -1,11 +1,13 @@
-// app/debug-supabase/page.tsx
-import { createSupabaseRSC } from "@/lib/supabase/rsc";
+import { createSupabaseServer } from '@/lib/supabase/server';
 
 export default async function Page() {
-  const supabase = await createSupabaseRSC();
+  const supabase = createSupabaseServer();
 
-  const { data, error } = await supabase.from("tu_tabla").select("*").limit(1);
+  const { data, error } = await supabase.from("test").select("*");
+
   return (
-    <pre>{JSON.stringify({ data, error }, null, 2)}</pre>
+    <pre>
+      {error ? error.message : JSON.stringify(data, null, 2)}
+    </pre>
   );
 }
