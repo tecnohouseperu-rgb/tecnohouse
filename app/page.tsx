@@ -1,65 +1,116 @@
 import Image from "next/image";
+import Link from "next/link";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
-export default function Home() {
+const HERO = [
+  {
+    id: 1,
+    img: "/banners/hero-1.jpg",
+    alt: "AirPods 2da gen",
+  },
+  {
+    id: 2,
+    img: "/banners/hero-2.jpg",
+    alt: "iPad oferta",
+  },
+  {
+    id: 3,
+    img: "/banners/hero-3.jpg",
+    alt: "Cool Days",
+  },
+];
+
+export default function HomePage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="pb-16">
+      {/* HERO - carrusel con scroll-snap */}
+      <section className="mt-2">
+        <div className="relative">
+          <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory px-4 lg:px-8 py-2">
+            {HERO.map((b) => (
+              <div
+                key={b.id}
+                className="min-w-[85%] md:min-w-[48%] lg:min-w-[33%] snap-start"
+              >
+                <div className="relative h-[220px] md:h-[260px] lg:h-[320px] w-full overflow-hidden rounded-xl bg-neutral-100">
+                  <Image
+                    src={b.img}
+                    alt={b.alt}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 85vw, (max-width: 1200px) 48vw, 33vw"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </section>
+
+      {/* Tres bloques principales */}
+      <section className="px-4 lg:px-8 mt-6 grid gap-6 md:grid-cols-3">
+        <Card>
+          <CardHeader>
+            <CardTitle>Ofertas bombas</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="h-40 bg-neutral-100 rounded-lg" />
+            <Button asChild className="w-full">
+              <Link href="/ofertas">Ver ofertas</Link>
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Tendencias</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="h-40 bg-neutral-100 rounded-lg" />
+            <Button asChild className="w-full" variant="secondary">
+              <Link href="/tendencias">Ver todo</Link>
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Lo más vendido</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="h-40 bg-neutral-100 rounded-lg" />
+            <Button asChild className="w-full" variant="outline">
+              <Link href="/mas-vendido">Ver todo</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </section>
+
+      {/* Rejilla de categorías destacadas */}
+      <section className="px-4 lg:px-8 mt-10">
+        <h2 className="text-lg font-semibold mb-4">Explora por categoría</h2>
+        <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+          {[
+            { name: "Audio", href: "/c/audio/audifonos" },
+            { name: "Celulares", href: "/c/celulares/celulares" },
+            { name: "Gamer", href: "/c/gamer/consolas" },
+            { name: "Cómputo", href: "/c/computo/laptops-accesorios" },
+            { name: "Smart Home", href: "/c/smarthome/convertidores" },
+            { name: "TV y Video", href: "/c/tv-video/televisores" },
+          ].map((cat) => (
+            <Link
+              key={cat.name}
+              href={cat.href}
+              className="rounded-xl border p-4 hover:shadow-sm transition bg-white"
+            >
+              <div className="h-20 rounded-md bg-neutral-100 mb-3" />
+              <div className="font-medium">{cat.name}</div>
+              <div className="text-sm text-neutral-600">Ver productos</div>
+            </Link>
+          ))}
         </div>
-      </main>
-    </div>
+      </section>
+    </main>
   );
 }
