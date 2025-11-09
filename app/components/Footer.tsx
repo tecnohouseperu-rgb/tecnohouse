@@ -37,7 +37,7 @@ export default function Footer() {
             <li className="flex items-center gap-3">
               <Phone className="size-4 text-neutral-400" />
               <Link
-                href="https://wa.me/51900000000"
+                href="https://wa.me/51902138542"
                 className="hover:text-white transition-colors"
                 target="_blank"
               >
@@ -174,7 +174,7 @@ export default function Footer() {
         <div>
           <h3 className="text-white font-semibold mb-4">Destacados</h3>
           <p className="text-sm text-neutral-400">
-            Agrega aquí enlaces rápidos (ofertas, campañas, nuevas colecciones, etc.).
+            Envio gratis a todo el Perú por compras mayores a S/ 200 .
           </p>
         </div>
       </div>
@@ -223,10 +223,7 @@ export default function Footer() {
         <div className="max-w-7xl mx-auto px-4 lg:px-6 py-4 text-xs text-neutral-400 flex flex-col md:flex-row items-center justify-between gap-2">
           <span>© {new Date().getFullYear()} TecnoHouse Perú. Todos los derechos reservados.</span>
           <div className="flex gap-4">
-            <Link href="/mis-compras" className="hover:text-neutral-200">
-              Mis compras
-            </Link>
-            <Link href="/tiendas" className="hover:text-neutral-200">
+                        <Link href="/tiendas" className="hover:text-neutral-200">
               Nuestras tiendas
             </Link>
             <Link href="/canales-de-atencion" className="hover:text-neutral-200">

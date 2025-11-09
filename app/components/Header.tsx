@@ -13,6 +13,8 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import type { ReactNode } from "react";
 
 /* helper para clases */
 function cx(...s: (string | false | undefined)[]) {
@@ -32,7 +34,7 @@ type MegaCategory = {
 };
 
 /* =======================
-   DATA de categorías
+   DATA de categorías (tu data intacta)
    ======================= */
 const MEGA_DATA: MegaCategory[] = [
   {
@@ -42,9 +44,7 @@ const MEGA_DATA: MegaCategory[] = [
     groups: [
       {
         title: "Audífonos",
-        items: [
-          { label: "Audífonos", href: "/categorias/audio/audifonos" },
-        ],
+        items: [{ label: "Audífonos", href: "/categorias/audio/audifonos" }],
       },
       {
         title: "Parlantes",
@@ -79,10 +79,7 @@ const MEGA_DATA: MegaCategory[] = [
         title: "Accesorios",
         items: [
           { label: "Cargadores", href: "/categorias/celulares/cargadores" },
-          {
-            label: "Baterías externas",
-            href: "/categorias/celulares/baterias-externas",
-          },
+          { label: "Baterías externas", href: "/categorias/celulares/baterias-externas" },
           { label: "Cables", href: "/categorias/celulares/cables" },
         ],
       },
@@ -273,43 +270,128 @@ const CATEGORY_INDEX = MEGA_DATA.reduce<Record<string, MegaCategory>>((acc, c) =
 }, {});
 
 /* =======================
+   Cart: contador real
+   ======================= */
+// Lee de: window.__CART_COUNT, window.__CART.getCount() o localStorage("cart")
+function useCartCount() {
+  const [count, setCount] = useState<number>(0);
+
+  useEffect(() => {
+    const read = () => {
+      try {
+        const g: any = globalThis as any;
+        if (typeof g.__CART_COUNT === "number") return g.__CART_COUNT;
+        if (g.__CART && typeof g.__CART.getCount === "function") {
+          return Number(g.__CART.getCount()) || 0;
+        }
+        const raw = localStorage.getItem("cart");
+        if (!raw) return 0;
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          return parsed.reduce((acc, it) => acc + (Number(it.quantity) || 1), 0);
+        }
+        if (parsed && Array.isArray(parsed.items)) {
+          return parsed.items.reduce((acc: number, it: any) => acc + (Number(it.quantity) || 1), 0);
+        }
+      } catch {}
+      return 0;
+    };
+
+    const update = () => setCount(read());
+    update();
+
+    const onAnyUpdate = () => update();
+    window.addEventListener("cart:updated", onAnyUpdate as any);
+    window.addEventListener("storage", onAnyUpdate as any);
+    const id = window.setInterval(update, 3000);
+
+    return () => {
+      window.removeEventListener("cart:updated", onAnyUpdate as any);
+      window.removeEventListener("storage", onAnyUpdate as any);
+      window.clearInterval(id);
+    };
+  }, []);
+
+  return count;
+}
+
+/* =======================
+   Cart FAB + Portal
+   ======================= */
+function CartFab({ z = 900 }: { z?: number }) {
+  const count = useCartCount();
+  const display = count > 99 ? "99+" : String(count);
+  return (
+    <Link
+      href="/carrito"
+      aria-label="Abrir carrito"
+      className={cx(
+        "md:hidden fixed right-4 bottom-4",
+        "inline-flex items-center gap-2 h-12 px-4 rounded-full",
+        "bg-white/95 backdrop-blur border shadow-xl",
+        "text-foreground active:scale-[0.98] transition-transform"
+      )}
+      style={{ zIndex: z, bottom: "calc(env(safe-area-inset-bottom, 0px) + 16px)" }}
+    >
+      <div className="relative inline-flex h-8 w-8 items-center justify-center rounded-full border">
+        <ShoppingCart className="h-4 w-4" />
+        {count > 0 && (
+          <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full text-[11px] leading-5 text-white text-center bg-red-600 shadow">
+            {display}
+          </span>
+        )}
+      </div>
+      <span className="text-sm font-medium">Carrito</span>
+    </Link>
+  );
+}
+
+// Monta el FAB fuera del header para que 'fixed' sea del viewport
+function CartPortal({ children }: { children: ReactNode }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
+  return createPortal(children, document.body);
+}
+
+/* =======================
    COMPONENTE
    ======================= */
 export default function Header() {
   const [openMega, setOpenMega] = useState(false);
   const [activeKey, setActiveKey] = useState<string>(MEGA_DATA[0].key);
   const [mobileDrawer, setMobileDrawer] = useState(false);
-
   const activeCategory = useMemo(() => CATEGORY_INDEX[activeKey], [activeKey]);
 
- // Cerrar mega al hacer scroll SOLO en dispositivos táctiles (móvil/tablet)
-useEffect(() => {
-  if (!openMega) return;
+  /** Cierre natural del mega: click/tap fuera + ESC */
+  const megaRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!openMega) return;
 
-  // true si el dispositivo es táctil/coarse pointer (móvil/tablet)
-  const isTouchLike = window.matchMedia('(pointer: coarse)').matches;
-  if (!isTouchLike) return; // en desktop no cerramos por scroll
+    const onDocClick = (e: MouseEvent | TouchEvent) => {
+      const target = e.target as Node;
+      if (megaRef.current && !megaRef.current.contains(target)) {
+        setOpenMega(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpenMega(false);
+    };
 
-  const onScroll = () => setOpenMega(false);
+    document.addEventListener("mousedown", onDocClick);
+    document.addEventListener("touchstart", onDocClick, { passive: true });
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDocClick);
+      document.removeEventListener("touchstart", onDocClick);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [openMega]);
 
-  // pequeña demora para evitar que la inercia del scroll lo cierre al abrir
-  const t = setTimeout(() => {
-    window.addEventListener('scroll', onScroll, { passive: true });
-  }, 120);
-
-  return () => {
-    clearTimeout(t);
-    window.removeEventListener('scroll', onScroll);
-  };
-}, [openMega]);
-
-  /** --- FIX iOS/Android: congelamiento al abrir drawer ---
-   * Dejamos el body en fixed y restauramos el scroll
-   */
+  /** FIX iOS/Android: congelamiento al abrir drawer */
   const scrollYRef = useRef(0);
   useEffect(() => {
     const body = document.body;
-
     if (mobileDrawer) {
       scrollYRef.current = window.scrollY || window.pageYOffset || 0;
       body.style.position = "fixed";
@@ -328,7 +410,6 @@ useEffect(() => {
       body.style.overflow = "";
       if (y) window.scrollTo(0, y);
     }
-
     return () => {
       const y = -parseInt(body.style.top || "0", 10) || 0;
       body.style.position = "";
@@ -353,7 +434,7 @@ useEffect(() => {
           <Link href="/tiendas" className="hover:text-foreground flex items-center gap-1">
             <Store size={14} /> Nuestras Tiendas
           </Link>
-          <Link href="/ayuda" className="hover:text-foreground flex items-center gap-1">
+          <Link href="/canales-de-atencion" className="hover:text-foreground flex items-center gap-1">
             <HelpCircle size={14} /> Ayuda
           </Link>
         </div>
@@ -384,6 +465,8 @@ useEffect(() => {
                 "inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium",
                 "hover:bg-muted/70 transition"
               )}
+              aria-expanded={openMega}
+              aria-controls="mega-menu"
             >
               <Menu size={18} />
               Categorías
@@ -424,7 +507,7 @@ useEffect(() => {
             </Link>
 
             <Link
-              href="/ayuda"
+              href="/canales-de-atencion"
               className="hidden md:inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm hover:bg-muted/70"
             >
               <HelpCircle size={18} />
@@ -433,7 +516,7 @@ useEffect(() => {
 
             <Link
               href="/carrito"
-              className="inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm hover:bg-muted/70"
+              className="hidden md:inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm hover:bg-muted/70"
             >
               <ShoppingCart size={18} />
               <span className="hidden lg:inline">Carrito</span>
@@ -444,7 +527,7 @@ useEffect(() => {
 
       {/* Mega menú desktop */}
       {openMega && (
-        <div className="hidden md:block border-t bg-white">
+        <div id="mega-menu" ref={megaRef} className="hidden md:block border-t bg-white">
           <div className="max-w-7xl mx-auto grid grid-cols-[240px_1fr] min-h-[420px]">
             {/* Columna izquierda (categorías) */}
             <aside className="border-r p-2">
@@ -458,7 +541,6 @@ useEffect(() => {
                       )}
                       onMouseEnter={() => setActiveKey(cat.key)}
                       onFocus={() => setActiveKey(cat.key)}
-                      onClick={() => setOpenMega(false)}
                     >
                       {cat.label}
                     </button>
@@ -526,7 +608,7 @@ useEffect(() => {
         </div>
       </div>
 
-      {/* Drawer móvil (solo categorías y subcategorías) */}
+      {/* Drawer móvil */}
       {mobileDrawer && (
         <div className="md:hidden fixed inset-0 z-[60]" role="dialog" aria-modal="true">
           {/* Overlay */}
@@ -537,19 +619,10 @@ useEffect(() => {
           />
 
           {/* Panel */}
-          <div
-            className={cx(
-              "absolute left-0 top-0 w-[92%] max-w-[420px] bg-white shadow-xl",
-              "h-[100dvh] grid grid-rows-[auto,1fr]"
-            )}
-          >
+          <div className={cx("absolute left-0 top-0 w-[92%] max-w-[420px] bg-white shadow-xl", "h-[100dvh] grid grid-rows-[auto,1fr]")}>
             <div className="flex items-center justify-between border-b px-4 h-12">
               <span className="text-sm font-medium">Categorías</span>
-              <button
-                className="p-2 rounded-md hover:bg-muted/70"
-                onClick={() => setMobileDrawer(false)}
-                aria-label="Cerrar"
-              >
+              <button className="p-2 rounded-md hover:bg-muted/70" onClick={() => setMobileDrawer(false)} aria-label="Cerrar">
                 <X size={18} />
               </button>
             </div>
@@ -573,11 +646,7 @@ useEffect(() => {
                                 <ul className="space-y-1">
                                   {group.items.map((it) => (
                                     <li key={it.href}>
-                                      <Link
-                                        href={it.href}
-                                        className="text-sm text-muted-foreground hover:text-foreground"
-                                        onClick={() => setMobileDrawer(false)}
-                                      >
+                                      <Link href={it.href} className="text-sm text-muted-foreground hover:text-foreground" onClick={() => setMobileDrawer(false)}>
                                         {it.label}
                                       </Link>
                                     </li>
@@ -589,13 +658,8 @@ useEffect(() => {
                         ) : (
                           <div className="text-xs text-muted-foreground">Próximamente subcategorías…</div>
                         )}
-
                         <div className="pt-3">
-                          <Link
-                            href={cat.href}
-                            className="text-xs text-primary hover:underline"
-                            onClick={() => setMobileDrawer(false)}
-                          >
+                          <Link href={cat.href} className="text-xs text-primary hover:underline" onClick={() => setMobileDrawer(false)}>
                             Ver todo {cat.label}
                           </Link>
                         </div>
@@ -606,8 +670,14 @@ useEffect(() => {
               </ul>
             </div>
           </div>
+
+          {/* FAB de carrito (sobre el overlay y panel) */}
+          <CartPortal><CartFab z={1000} /></CartPortal>
         </div>
       )}
+
+      {/* FAB cuando el drawer NO está abierto */}
+      {!mobileDrawer && (<CartPortal><CartFab z={900} /></CartPortal>)}
     </header>
   );
 }
