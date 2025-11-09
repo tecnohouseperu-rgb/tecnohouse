@@ -1,3 +1,4 @@
+// app/components/Header.tsx
 "use client";
 
 import Image from "next/image";
@@ -13,17 +14,16 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
-import type { ReactNode } from "react";
+import dynamic from "next/dynamic";
 
-/* helper para clases */
+// ⬇️ FAB de carrito (flotante) solo en cliente
+const CartFab = dynamic(() => import("@/app/components/CartFab"), { ssr: false });
+
 function cx(...s: (string | false | undefined)[]) {
   return s.filter(Boolean).join(" ");
 }
 
-/* =======================
-   Tipos
-   ======================= */
+/* ====== TIPOS ====== */
 type MegaItem = { label: string; href: string };
 type MegaGroup = { title: string; items: MegaItem[] };
 type MegaCategory = {
@@ -33,47 +33,27 @@ type MegaCategory = {
   groups: MegaGroup[];
 };
 
-/* =======================
-   DATA de categorías (tu data intacta)
-   ======================= */
+/* ====== DATA DE CATEGORÍAS ====== */
 const MEGA_DATA: MegaCategory[] = [
   {
     key: "audio",
     label: "Audio",
     href: "/categorias/audio",
     groups: [
-      {
-        title: "Audífonos",
-        items: [{ label: "Audífonos", href: "/categorias/audio/audifonos" }],
-      },
-      {
-        title: "Parlantes",
-        items: [{ label: "Parlantes", href: "/categorias/audio/parlantes" }],
-      },
-      {
-        title: "Micrófonos",
-        items: [{ label: "Micrófonos", href: "/categorias/audio/microfonos" }],
-      },
+      { title: "Audífonos", items: [{ label: "Audífonos", href: "/categorias/audio/audifonos" }] },
+      { title: "Parlantes", items: [{ label: "Parlantes", href: "/categorias/audio/parlantes" }] },
+      { title: "Micrófonos", items: [{ label: "Micrófonos", href: "/categorias/audio/microfonos" }] },
     ],
   },
-
   {
     key: "celulares",
     label: "Celulares y Accesorios",
     href: "/categorias/celulares",
     groups: [
-      {
-        title: "Celulares",
-        items: [{ label: "Celulares", href: "/categorias/celulares/celulares" }],
-      },
+      { title: "Celulares", items: [{ label: "Celulares", href: "/categorias/celulares/celulares" }] },
       {
         title: "Relojes inteligentes",
-        items: [
-          {
-            label: "Relojes inteligentes",
-            href: "/categorias/celulares/relojes-inteligentes",
-          },
-        ],
+        items: [{ label: "Relojes inteligentes", href: "/categorias/celulares/relojes-inteligentes" }],
       },
       {
         title: "Accesorios",
@@ -85,7 +65,6 @@ const MEGA_DATA: MegaCategory[] = [
       },
     ],
   },
-
   {
     key: "gamer",
     label: "Gamer",
@@ -98,7 +77,6 @@ const MEGA_DATA: MegaCategory[] = [
       { title: "Sillas y mesas", items: [{ label: "Sillas y mesas", href: "/categorias/gamer/sillas-mesas" }] },
     ],
   },
-
   {
     key: "computo",
     label: "Cómputo",
@@ -115,7 +93,6 @@ const MEGA_DATA: MegaCategory[] = [
       { title: "Tablets", items: [{ label: "Tablets", href: "/categorias/computo/tablets" }] },
     ],
   },
-
   {
     key: "smart-home",
     label: "Smart Home",
@@ -135,14 +112,12 @@ const MEGA_DATA: MegaCategory[] = [
       },
     ],
   },
-
   {
     key: "tv-video",
     label: "TV y Video",
     href: "/categorias/tv-video",
     groups: [{ title: "Televisores", items: [{ label: "Televisores", href: "/categorias/tv-video/televisores" }] }],
   },
-
   {
     key: "electrohogar",
     label: "Electrohogar",
@@ -155,7 +130,6 @@ const MEGA_DATA: MegaCategory[] = [
       { title: "Electrodomésticos", items: [{ label: "Electrodomésticos", href: "/categorias/electrohogar/electrodomesticos" }] },
     ],
   },
-
   {
     key: "deportes",
     label: "Deportes y Aire Libre",
@@ -171,14 +145,12 @@ const MEGA_DATA: MegaCategory[] = [
       },
     ],
   },
-
   {
     key: "drones",
     label: "Drones",
     href: "/categorias/drones",
     groups: [{ title: "Drones", items: [{ label: "Drones", href: "/categorias/drones/drones" }] }],
   },
-
   {
     key: "fotografia",
     label: "Fotografía",
@@ -188,18 +160,19 @@ const MEGA_DATA: MegaCategory[] = [
       { title: "Soporte", items: [{ label: "Soporte", href: "/categorias/fotografia/soporte" }] },
     ],
   },
-
   {
     key: "mascotas",
     label: "Mascotas",
     href: "/categorias/mascotas",
     groups: [
       { title: "Rascadores", items: [{ label: "Rascadores", href: "/categorias/mascotas/rascadores" }] },
-      { title: "Dispensadores electrónicos de comida", items: [{ label: "Dispensadores electrónicos de comida", href: "/categorias/mascotas/dispensadores-comida" }] },
+      {
+        title: "Dispensadores electrónicos de comida",
+        items: [{ label: "Dispensadores electrónicos de comida", href: "/categorias/mascotas/dispensadores-comida" }],
+      },
       { title: "Comida", items: [{ label: "Comida", href: "/categorias/mascotas/comida" }] },
     ],
   },
-
   {
     key: "jugueteria",
     label: "Juguetería",
@@ -209,7 +182,6 @@ const MEGA_DATA: MegaCategory[] = [
       { title: "Otros juguetes", items: [{ label: "Otros juguetes", href: "/categorias/jugueteria/otros" }] },
     ],
   },
-
   {
     key: "bebe",
     label: "Mundo Bebé",
@@ -221,7 +193,6 @@ const MEGA_DATA: MegaCategory[] = [
       { title: "Toboganes", items: [{ label: "Toboganes", href: "/categorias/bebe/toboganes" }] },
     ],
   },
-
   {
     key: "viajes",
     label: "Viajes",
@@ -231,7 +202,6 @@ const MEGA_DATA: MegaCategory[] = [
       { title: "Mochilas", items: [{ label: "Mochilas", href: "/categorias/viajes/mochilas" }] },
     ],
   },
-
   {
     key: "navidad",
     label: "Navidad",
@@ -251,7 +221,6 @@ const MEGA_DATA: MegaCategory[] = [
       },
     ],
   },
-
   {
     key: "crocs",
     label: "Crocs",
@@ -263,121 +232,26 @@ const MEGA_DATA: MegaCategory[] = [
   },
 ];
 
-/* índice por key para leer rápido */
 const CATEGORY_INDEX = MEGA_DATA.reduce<Record<string, MegaCategory>>((acc, c) => {
   acc[c.key] = c;
   return acc;
 }, {});
 
-/* =======================
-   Cart: contador real
-   ======================= */
-// Lee de: window.__CART_COUNT, window.__CART.getCount() o localStorage("cart")
-function useCartCount() {
-  const [count, setCount] = useState<number>(0);
-
-  useEffect(() => {
-    const read = () => {
-      try {
-        const g: any = globalThis as any;
-        if (typeof g.__CART_COUNT === "number") return g.__CART_COUNT;
-        if (g.__CART && typeof g.__CART.getCount === "function") {
-          return Number(g.__CART.getCount()) || 0;
-        }
-        const raw = localStorage.getItem("cart");
-        if (!raw) return 0;
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) {
-          return parsed.reduce((acc, it) => acc + (Number(it.quantity) || 1), 0);
-        }
-        if (parsed && Array.isArray(parsed.items)) {
-          return parsed.items.reduce((acc: number, it: any) => acc + (Number(it.quantity) || 1), 0);
-        }
-      } catch {}
-      return 0;
-    };
-
-    const update = () => setCount(read());
-    update();
-
-    const onAnyUpdate = () => update();
-    window.addEventListener("cart:updated", onAnyUpdate as any);
-    window.addEventListener("storage", onAnyUpdate as any);
-    const id = window.setInterval(update, 3000);
-
-    return () => {
-      window.removeEventListener("cart:updated", onAnyUpdate as any);
-      window.removeEventListener("storage", onAnyUpdate as any);
-      window.clearInterval(id);
-    };
-  }, []);
-
-  return count;
-}
-
-/* =======================
-   Cart FAB + Portal
-   ======================= */
-function CartFab({ z = 900 }: { z?: number }) {
-  const count = useCartCount();
-  const display = count > 99 ? "99+" : String(count);
-  return (
-    <Link
-      href="/carrito"
-      aria-label="Abrir carrito"
-      className={cx(
-        "md:hidden fixed right-4 bottom-4",
-        "inline-flex items-center gap-2 h-12 px-4 rounded-full",
-        "bg-white/95 backdrop-blur border shadow-xl",
-        "text-foreground active:scale-[0.98] transition-transform"
-      )}
-      style={{ zIndex: z, bottom: "calc(env(safe-area-inset-bottom, 0px) + 16px)" }}
-    >
-      <div className="relative inline-flex h-8 w-8 items-center justify-center rounded-full border">
-        <ShoppingCart className="h-4 w-4" />
-        {count > 0 && (
-          <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full text-[11px] leading-5 text-white text-center bg-red-600 shadow">
-            {display}
-          </span>
-        )}
-      </div>
-      <span className="text-sm font-medium">Carrito</span>
-    </Link>
-  );
-}
-
-// Monta el FAB fuera del header para que 'fixed' sea del viewport
-function CartPortal({ children }: { children: ReactNode }) {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-  if (!mounted) return null;
-  return createPortal(children, document.body);
-}
-
-/* =======================
-   COMPONENTE
-   ======================= */
 export default function Header() {
   const [openMega, setOpenMega] = useState(false);
   const [activeKey, setActiveKey] = useState<string>(MEGA_DATA[0].key);
   const [mobileDrawer, setMobileDrawer] = useState(false);
   const activeCategory = useMemo(() => CATEGORY_INDEX[activeKey], [activeKey]);
 
-  /** Cierre natural del mega: click/tap fuera + ESC */
+  // Cierre del mega por click afuera / ESC
   const megaRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     if (!openMega) return;
-
     const onDocClick = (e: MouseEvent | TouchEvent) => {
       const target = e.target as Node;
-      if (megaRef.current && !megaRef.current.contains(target)) {
-        setOpenMega(false);
-      }
+      if (megaRef.current && !megaRef.current.contains(target)) setOpenMega(false);
     };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpenMega(false);
-    };
-
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpenMega(false);
     document.addEventListener("mousedown", onDocClick);
     document.addEventListener("touchstart", onDocClick, { passive: true });
     document.addEventListener("keydown", onKey);
@@ -388,7 +262,7 @@ export default function Header() {
     };
   }, [openMega]);
 
-  /** FIX iOS/Android: congelamiento al abrir drawer */
+  // Body lock al abrir drawer móvil
   const scrollYRef = useRef(0);
   useEffect(() => {
     const body = document.body;
@@ -423,7 +297,7 @@ export default function Header() {
   }, [mobileDrawer]);
 
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 border-b">
+   <header className="sticky top-[var(--tb-h,0px)] z-50 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 border-b">
       {/* Top bar */}
       <div className="hidden md:flex items-center justify-between text-xs text-muted-foreground px-4 lg:px-6 h-8 max-w-7xl mx-auto">
         <div className="flex items-center gap-2">
@@ -452,9 +326,7 @@ export default function Header() {
               className="h-9 w-auto object-contain"
               priority
             />
-            <span className="text-lg md:text-xl font-semibold tracking-tight">
-              TecnoHouse Perú
-            </span>
+            <span className="text-lg md:text-xl font-semibold tracking-tight">TecnoHouse Perú</span>
           </Link>
 
           {/* Categorías (desktop) */}
@@ -489,7 +361,7 @@ export default function Header() {
 
           {/* Acciones */}
           <div className="ml-auto flex items-center gap-2 md:gap-3">
-            {/* Abre Drawer móvil */}
+            {/* Drawer móvil */}
             <button
               onClick={() => setMobileDrawer(true)}
               className="md:hidden inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm hover:bg-muted/70"
@@ -498,6 +370,7 @@ export default function Header() {
               Categorías
             </button>
 
+            {/* En desktop mostramos el acceso al carrito en el header */}
             <Link
               href="/tiendas"
               className="hidden md:inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm hover:bg-muted/70"
@@ -514,6 +387,7 @@ export default function Header() {
               <span className="hidden lg:inline">Ayuda</span>
             </Link>
 
+            {/* 👇 Oculto en móvil para evitar doble “carrito” */}
             <Link
               href="/carrito"
               className="hidden md:inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm hover:bg-muted/70"
@@ -529,7 +403,6 @@ export default function Header() {
       {openMega && (
         <div id="mega-menu" ref={megaRef} className="hidden md:block border-t bg-white">
           <div className="max-w-7xl mx-auto grid grid-cols-[240px_1fr] min-h-[420px]">
-            {/* Columna izquierda (categorías) */}
             <aside className="border-r p-2">
               <ul className="space-y-1">
                 {MEGA_DATA.map((cat) => (
@@ -549,7 +422,6 @@ export default function Header() {
               </ul>
             </aside>
 
-            {/* Panel derecho (grupos) */}
             <section className="p-4">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-base md:text-lg font-semibold">{activeCategory?.label}</h3>
@@ -619,7 +491,12 @@ export default function Header() {
           />
 
           {/* Panel */}
-          <div className={cx("absolute left-0 top-0 w-[92%] max-w-[420px] bg-white shadow-xl", "h-[100dvh] grid grid-rows-[auto,1fr]")}>
+          <div
+            className={cx(
+              "absolute left-0 top-0 w-[92%] max-w-[420px] bg-white shadow-xl",
+              "h-[100dvh] grid grid-rows-[auto,1fr]"
+            )}
+          >
             <div className="flex items-center justify-between border-b px-4 h-12">
               <span className="text-sm font-medium">Categorías</span>
               <button className="p-2 rounded-md hover:bg-muted/70" onClick={() => setMobileDrawer(false)} aria-label="Cerrar">
@@ -646,7 +523,11 @@ export default function Header() {
                                 <ul className="space-y-1">
                                   {group.items.map((it) => (
                                     <li key={it.href}>
-                                      <Link href={it.href} className="text-sm text-muted-foreground hover:text-foreground" onClick={() => setMobileDrawer(false)}>
+                                      <Link
+                                        href={it.href}
+                                        className="text-sm text-muted-foreground hover:text-foreground"
+                                        onClick={() => setMobileDrawer(false)}
+                                      >
                                         {it.label}
                                       </Link>
                                     </li>
@@ -658,8 +539,13 @@ export default function Header() {
                         ) : (
                           <div className="text-xs text-muted-foreground">Próximamente subcategorías…</div>
                         )}
+
                         <div className="pt-3">
-                          <Link href={cat.href} className="text-xs text-primary hover:underline" onClick={() => setMobileDrawer(false)}>
+                          <Link
+                            href={cat.href}
+                            className="text-xs text-primary hover:underline"
+                            onClick={() => setMobileDrawer(false)}
+                          >
                             Ver todo {cat.label}
                           </Link>
                         </div>
@@ -670,14 +556,11 @@ export default function Header() {
               </ul>
             </div>
           </div>
-
-          {/* FAB de carrito (sobre el overlay y panel) */}
-          <CartPortal><CartFab z={1000} /></CartPortal>
         </div>
       )}
 
-      {/* FAB cuando el drawer NO está abierto */}
-      {!mobileDrawer && (<CartPortal><CartFab z={900} /></CartPortal>)}
+      {/* ✅ FAB de carrito para móvil (abajo a la derecha, sin duplicados) */}
+      <CartFab z={900} threshold={200} />
     </header>
   );
 }
