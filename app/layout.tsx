@@ -24,7 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           items={[
             {
               id: "free-shipping",
-              text: 'En compras desde <b>S/ 200</b> a <b>Lima y todo el Perú</b>.',
+              text: 'Envio gratis en compras desde <b>S/ 200</b> a <b>Lima y todo el Perú</b>.',
             },
           ]}
           bgClass="bg-[#0B1220]"   // tono oscuro elegante

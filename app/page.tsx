@@ -48,10 +48,44 @@ const SECONDARY = [
   },
   {
     id: 3,
-    title: "Lo más vendido",
-    href: "/mas-vendido",
-    img: "https://nelyvuxwskmqwtcmystn.supabase.co/storage/v1/object/public/banners/secondary/banner-masvendido.webp",
+    title: "Crocs",
+    href: "/categorias/crocs",
+    img: "https://nelyvuxwskmqwtcmystn.supabase.co/storage/v1/object/public/banners/secondary/banner-crocs2.jpg",
     alt: "Top ventas",
+  },
+];
+
+// ✅ CATEGORÍAS CON MINIBANNERS
+const CATEGORIES = [
+  {
+    name: "Audio",
+    href: "/c/audio/audifonos",
+    img: "https://nelyvuxwskmqwtcmystn.supabase.co/storage/v1/object/public/categories/audio2.jpg",
+  },
+  {
+    name: "Celulares",
+    href: "/c/celulares/celulares",
+    img: "https://nelyvuxwskmqwtcmystn.supabase.co/storage/v1/object/public/categories/celulares2.jpg",
+  },
+  {
+    name: "Gamer",
+    href: "/c/gamer/consolas",
+    img: "https://nelyvuxwskmqwtcmystn.supabase.co/storage/v1/object/public/categories/gamer2.jpg",
+  },
+  {
+    name: "Cómputo",
+    href: "/c/computo/laptops-accesorios",
+    img: "https://nelyvuxwskmqwtcmystn.supabase.co/storage/v1/object/public/categories/computo2.jpg",
+  },
+  {
+    name: "Smart Home",
+    href: "/c/smarthome/convertidores",
+    img: "https://nelyvuxwskmqwtcmystn.supabase.co/storage/v1/object/public/categories/smart-home.jpg",
+  },
+  {
+    name: "TV y Video",
+    href: "/c/tv-video/televisores",
+    img: "https://nelyvuxwskmqwtcmystn.supabase.co/storage/v1/object/public/categories/tv-video3.jpg",
   },
 ];
 
@@ -103,26 +137,29 @@ export default function HomePage() {
         ))}
       </section>
 
-      {/* Rejilla de categorías destacadas (tu código) */}
+      {/* ✅ Rejilla de categorías destacadas con minibanners */}
       <section className="px-4 lg:px-8 mt-10">
         <h2 className="text-lg font-semibold mb-4">Explora por categoría</h2>
         <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
-          {[
-            { name: "Audio", href: "/c/audio/audifonos" },
-            { name: "Celulares", href: "/c/celulares/celulares" },
-            { name: "Gamer", href: "/c/gamer/consolas" },
-            { name: "Cómputo", href: "/c/computo/laptops-accesorios" },
-            { name: "Smart Home", href: "/c/smarthome/convertidores" },
-            { name: "TV y Video", href: "/c/tv-video/televisores" },
-          ].map((cat) => (
+          {CATEGORIES.map((cat) => (
             <Link
               key={cat.name}
               href={cat.href}
-              className="rounded-xl border p-4 hover:shadow-sm transition bg-white"
+              className="rounded-xl border hover:shadow-md transition bg-white overflow-hidden"
             >
-              <div className="h-20 rounded-md bg-neutral-100 mb-3" />
-              <div className="font-medium">{cat.name}</div>
-              <div className="text-sm text-neutral-600">Ver productos</div>
+              <div className="relative h-24 md:h-28 lg:h-32">
+                <Image
+                  src={cat.img}
+                  alt={cat.name}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 16vw"
+                />
+              </div>
+              <div className="p-2 text-center">
+                <div className="font-medium">{cat.name}</div>
+                <div className="text-sm text-neutral-600">Ver productos</div>
+              </div>
             </Link>
           ))}
         </div>
