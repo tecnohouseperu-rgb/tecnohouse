@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import BannerCard from "./components/BannerCard";
 
-// 3 banners: Audio (ya subido), Navidad, iPhones
+// 3 banners: Audio, Navidad, iPhones
 const BANNERS = [
   {
     id: 1,
@@ -11,6 +11,7 @@ const BANNERS = [
       "https://nelyvuxwskmqwtcmystn.supabase.co/storage/v1/object/public/banners/desktop/banner-desktop.jpg",
     mobile:
       "https://nelyvuxwskmqwtcmystn.supabase.co/storage/v1/object/public/banners/mobile/banner-mobile.jpg",
+    href: "/categorias/audio", // 👈 categoría Audio
   },
   {
     id: 2,
@@ -19,6 +20,7 @@ const BANNERS = [
       "https://nelyvuxwskmqwtcmystn.supabase.co/storage/v1/object/public/banners/desktop/navidad-desktop.jpg",
     mobile:
       "https://nelyvuxwskmqwtcmystn.supabase.co/storage/v1/object/public/banners/mobile/navidad-mobile.jpg",
+    href: "/categorias/navidad", // 👈 categoría Navidad
   },
   {
     id: 3,
@@ -27,6 +29,7 @@ const BANNERS = [
       "https://nelyvuxwskmqwtcmystn.supabase.co/storage/v1/object/public/banners/desktop/iphone-desktop.jpg",
     mobile:
       "https://nelyvuxwskmqwtcmystn.supabase.co/storage/v1/object/public/banners/mobile/iphone-mobile.jpg",
+    href: "/categorias/celulares/celulares", // 👈 iPhones / celulares
   },
 ];
 
@@ -59,32 +62,32 @@ const SECONDARY = [
 const CATEGORIES = [
   {
     name: "Audio",
-    href: "/c/audio/audifonos",
+    href: "/categorias/audio",
     img: "https://nelyvuxwskmqwtcmystn.supabase.co/storage/v1/object/public/categories/audio2.jpg",
   },
   {
     name: "Celulares",
-    href: "/c/celulares/celulares",
+    href: "/categorias/celulares/celulares",
     img: "https://nelyvuxwskmqwtcmystn.supabase.co/storage/v1/object/public/categories/celulares2.jpg",
   },
   {
     name: "Gamer",
-    href: "/c/gamer/consolas",
+    href: "/categorias/gamer",
     img: "https://nelyvuxwskmqwtcmystn.supabase.co/storage/v1/object/public/categories/gamer2.jpg",
   },
   {
     name: "Cómputo",
-    href: "/c/computo/laptops-accesorios",
+    href: "/categorias/computo",
     img: "https://nelyvuxwskmqwtcmystn.supabase.co/storage/v1/object/public/categories/computo2.jpg",
   },
   {
     name: "Smart Home",
-    href: "/c/smarthome/convertidores",
+    href: "/categorias/smart-home",
     img: "https://nelyvuxwskmqwtcmystn.supabase.co/storage/v1/object/public/categories/smart-home.jpg",
   },
   {
     name: "TV y Video",
-    href: "/c/tv-video/televisores",
+    href: "/categorias/tv-video",
     img: "https://nelyvuxwskmqwtcmystn.supabase.co/storage/v1/object/public/categories/tv-video3.jpg",
   },
 ];
@@ -105,6 +108,7 @@ export default function HomePage() {
                   alt={b.alt}
                   desktopSrc={b.desktop}
                   mobileSrc={b.mobile}
+                  href={b.href}          // 👈 ahora sí click al banner
                   priority={idx === 0}
                 />
               </div>
