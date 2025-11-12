@@ -1,7 +1,5 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import BannerCard from "./components/BannerCard";
 
 // 3 banners: Audio (ya subido), Navidad, iPhones
@@ -32,6 +30,31 @@ const BANNERS = [
   },
 ];
 
+// Banners secundarios (debajo del hero)
+const SECONDARY = [
+  {
+    id: 1,
+    title: "Televisores",
+    href: "/categorias/tv-video/televisores",
+    img: "https://nelyvuxwskmqwtcmystn.supabase.co/storage/v1/object/public/banners/secondary/tv-banner4.jpg",
+    alt: "Ofertas en televisores",
+  },
+  {
+    id: 2,
+    title: "Mundo Bebé",
+    href: "/categorias/bebe",
+    img: "https://nelyvuxwskmqwtcmystn.supabase.co/storage/v1/object/public/banners/secondary/banner-bebe.jpg",
+    alt: "Mundo bebé",
+  },
+  {
+    id: 3,
+    title: "Lo más vendido",
+    href: "/mas-vendido",
+    img: "https://nelyvuxwskmqwtcmystn.supabase.co/storage/v1/object/public/banners/secondary/banner-masvendido.webp",
+    alt: "Top ventas",
+  },
+];
+
 export default function HomePage() {
   return (
     <main className="pb-16">
@@ -48,7 +71,7 @@ export default function HomePage() {
                   alt={b.alt}
                   desktopSrc={b.desktop}
                   mobileSrc={b.mobile}
-                  priority={idx === 0} // solo el primero con prioridad
+                  priority={idx === 0}
                 />
               </div>
             ))}
@@ -56,43 +79,28 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Tres bloques principales (tu código) */}
+      {/* BANNERS SECUNDARIOS */}
       <section className="px-4 lg:px-8 mt-6 grid gap-6 md:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle>Ofertas bombas</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="h-40 bg-neutral-100 rounded-lg" />
-            <Button asChild className="w-full">
-              <Link href="/ofertas">Ver ofertas</Link>
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Tendencias</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="h-40 bg-neutral-100 rounded-lg" />
-            <Button asChild className="w-full" variant="secondary">
-              <Link href="/tendencias">Ver todo</Link>
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Lo más vendido</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="h-40 bg-neutral-100 rounded-lg" />
-            <Button asChild className="w-full" variant="outline">
-              <Link href="/mas-vendido">Ver todo</Link>
-            </Button>
-          </CardContent>
-        </Card>
+        {SECONDARY.map((b) => (
+          <Link
+            key={b.id}
+            href={b.href}
+            className="block overflow-hidden rounded-xl shadow-sm border hover:shadow-md transition"
+          >
+            <div className="relative w-full h-[180px] md:h-[200px] lg:h-[220px] bg-neutral-100">
+              <Image
+                src={b.img}
+                alt={b.alt}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 33vw"
+              />
+            </div>
+            <div className="p-3 text-center font-medium text-sm md:text-base">
+              {b.title}
+            </div>
+          </Link>
+        ))}
       </section>
 
       {/* Rejilla de categorías destacadas (tu código) */}
