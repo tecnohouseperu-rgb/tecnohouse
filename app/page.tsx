@@ -2,22 +2,33 @@ import Image from "next/image";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import BannerCard from "./components/BannerCard";
 
-const HERO = [
+// 3 banners: Audio (ya subido), Navidad, iPhones
+const BANNERS = [
   {
     id: 1,
-    img: "/banners/hero-1.jpg",
-    alt: "AirPods 2da gen",
+    alt: "Súper ofertas de Audio",
+    desktop:
+      "https://nelyvuxwskmqwtcmystn.supabase.co/storage/v1/object/public/banners/desktop/banner-desktop.jpg",
+    mobile:
+      "https://nelyvuxwskmqwtcmystn.supabase.co/storage/v1/object/public/banners/mobile/banner-mobile.jpg",
   },
   {
     id: 2,
-    img: "/banners/hero-2.jpg",
-    alt: "iPad oferta",
+    alt: "Navidad - Regala magia",
+    desktop:
+      "https://nelyvuxwskmqwtcmystn.supabase.co/storage/v1/object/public/banners/desktop/navidad-desktop.jpg",
+    mobile:
+      "https://nelyvuxwskmqwtcmystn.supabase.co/storage/v1/object/public/banners/mobile/navidad-mobile.jpg",
   },
   {
     id: 3,
-    img: "/banners/hero-3.jpg",
-    alt: "Cool Days",
+    alt: "iPhone - Estrena hoy",
+    desktop:
+      "https://nelyvuxwskmqwtcmystn.supabase.co/storage/v1/object/public/banners/desktop/iphone-desktop.jpg",
+    mobile:
+      "https://nelyvuxwskmqwtcmystn.supabase.co/storage/v1/object/public/banners/mobile/iphone-mobile.jpg",
   },
 ];
 
@@ -28,27 +39,24 @@ export default function HomePage() {
       <section className="mt-2">
         <div className="relative">
           <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory px-4 lg:px-8 py-2">
-            {HERO.map((b) => (
+            {BANNERS.map((b, idx) => (
               <div
                 key={b.id}
                 className="min-w-[85%] md:min-w-[48%] lg:min-w-[33%] snap-start"
               >
-                <div className="relative h-[220px] md:h-[260px] lg:h-[320px] w-full overflow-hidden rounded-xl bg-neutral-100">
-                  <Image
-                    src={b.img}
-                    alt={b.alt}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 85vw, (max-width: 1200px) 48vw, 33vw"
-                  />
-                </div>
+                <BannerCard
+                  alt={b.alt}
+                  desktopSrc={b.desktop}
+                  mobileSrc={b.mobile}
+                  priority={idx === 0} // solo el primero con prioridad
+                />
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Tres bloques principales */}
+      {/* Tres bloques principales (tu código) */}
       <section className="px-4 lg:px-8 mt-6 grid gap-6 md:grid-cols-3">
         <Card>
           <CardHeader>
@@ -87,7 +95,7 @@ export default function HomePage() {
         </Card>
       </section>
 
-      {/* Rejilla de categorías destacadas */}
+      {/* Rejilla de categorías destacadas (tu código) */}
       <section className="px-4 lg:px-8 mt-10">
         <h2 className="text-lg font-semibold mb-4">Explora por categoría</h2>
         <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
