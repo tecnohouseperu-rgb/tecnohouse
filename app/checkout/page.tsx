@@ -152,10 +152,14 @@ export default function Checkout() {
   const { items } = useCart();
 
   // calculamos el subtotal en base a los items del carrito
-  const subtotal = useMemo(
-    () => items.reduce((acc, it) => acc + it.price * it.qty, 0),
-    [items]
-  );
+const subtotal = useMemo(
+  () =>
+    items.reduce((acc, it) => {
+      const price = it.price ?? 0; // si viene null, usamos 0
+      return acc + price * it.qty;
+    }, 0),
+  [items]
+);
 
 
   // ===== Comprobante (Boleta / Factura)
