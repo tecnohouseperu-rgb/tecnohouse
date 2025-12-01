@@ -1056,9 +1056,12 @@ export default function Checkout() {
               {!readyToPay ? (
                 <button
                   type="button"
-                  onClick={() =>
-                    document.getElementById("checkout-form")?.requestSubmit()
-                  }
+                  onClick={() => {
+                    const form = document.getElementById(
+                      "checkout-form"
+                    ) as HTMLFormElement | null;
+                    form?.requestSubmit();
+                  }}
                   disabled={loading || !agree}
                   className={`mt-3 inline-flex items-center justify-center gap-2 w-full rounded-xl px-4 py-2 text-white transition ${
                     loading || !agree
