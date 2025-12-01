@@ -9,7 +9,8 @@ if (!accessToken) {
   console.error("MP_ACCESS_TOKEN no está definido en el entorno.");
 }
 
-// Dominio base: en producción viene de .env, en local usamos localhost
+// Dominio base: usa NEXT_PUBLIC_SITE_URL en producción
+// y localhost en desarrollo como fallback
 const BASE_URL =
   process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
@@ -17,30 +18,46 @@ const mpClient = new MercadoPagoConfig({
   accessToken: accessToken || "",
 });
 
+type MPItemIn = {
+  title: string;
+  quantity: number;
+  unit_price: number;
+};
+
+type Buyer = {
+  firstName: string;
+  docType: string;
+  docNumber: string;
+  phone: string;
+};
+
+type Shipping = {
+  cost: number;
+  carrier: string;
+  mode: string;
+  departamento: string;
+  provincia: string;
+  distrito: string;
+  direccion: string;
+  referencia?: string;
+};
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    const { items, external_reference, email, buyer, shipping } = body as {
-      items: { title: string; quantity: number; unit_price: number; id?: string }[];
+    const {
+      items,
+      external_reference,
+      email,
+      buyer,
+      shipping,
+    } = body as {
+      items: MPItemIn[];
       external_reference?: string;
       email?: string;
-      buyer?: {
-        firstName: string;
-        docType: string;
-        docNumber: string;
-        phone: string;
-      };
-      shipping?: {
-        cost: number;
-        carrier: string;
-        mode: string;
-        departamento: string;
-        provincia: string;
-        distrito: string;
-        direccion: string;
-        referencia?: string;
-      };
+      buyer?: Buyer;
+      shipping?: Shipping;
     };
 
     if (!Array.isArray(items) || items.length === 0) {
@@ -50,14 +67,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 🔹 Adaptamos los items al tipo Items[] del SDK (con id obligatorio)
+    // Adaptar items al formato que espera MP (con id y currency_id)
     const mpItems = items.map((it, idx) => ({
-      id: it.id ?? String(idx + 1),
+      id: String(idx + 1),
       title: it.title,
-      quantity: it.quantity,
-      unit_price: it.unit_price,
-      // opcional, pero recomendable:
-      currency_id: "PEN" as const,
+      quantity: Number(it.quantity || 1),
+      unit_price: Number(it.unit_price),
+      currency_id: "PEN",
     }));
 
     const pref = new Preference(mpClient);
@@ -94,25 +110,26 @@ export async function POST(req: NextRequest) {
                 state_name: shipping.departamento,
                 city_name: shipping.provincia,
                 street_name: shipping.direccion,
-                // comment: shipping.referencia, // <- eliminado, el tipo ReceiverAddress no lo acepta
+                // ⚠️ no ponemos "comment" porque el tipo de MP no lo trae
               },
             }
           : undefined,
 
-        // 🔹 URLs de retorno
+        // 🔹 URLs de retorno (OBLIGATORIO si usamos auto_return)
         back_urls: {
           success: `${BASE_URL}/checkout/success`,
           failure: `${BASE_URL}/checkout/failure`,
           pending: `${BASE_URL}/checkout/pending`,
         },
+
         auto_return: "approved",
 
-        // 🔹 Webhook (Mercado Pago llamará aquí cuando cambie el pago)
+        // 🔹 Webhook (para actualizar el pedido en segundo plano)
         notification_url: `${BASE_URL}/api/mercadopago/webhook`,
       },
     });
 
-    // 🔹 Guardamos el id de la preferencia en la orden (útil para debug)
+    // Opcional pero útil: guardar id de preferencia en la orden
     if (external_reference && preference.id) {
       const supabase = createClient();
       await supabase
