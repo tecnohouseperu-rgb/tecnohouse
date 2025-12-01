@@ -9,13 +9,12 @@ if (!accessToken) {
   console.error("MP_ACCESS_TOKEN no está definido en el entorno.");
 }
 
-// 🔹 Dominio base: tomado de .env (NEXT_PUBLIC_SITE_URL)
-//    en local, si no está definido, usa http://localhost:3000
+// Dominio base: en producción viene de .env, en local usamos localhost
 const BASE_URL =
   process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
 const mpClient = new MercadoPagoConfig({
-  accessToken: accessToken || "", // para evitar crash si falta
+  accessToken: accessToken || "",
 });
 
 export async function POST(req: NextRequest) {
@@ -23,8 +22,8 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
 
     const { items, external_reference, email, buyer, shipping } = body as {
-      items: { title: string; quantity: number; unit_price: number }[];
-      external_reference?: string; // aquí estás mandando el orderId
+      items: { title: string; quantity: number; unit_price: number; id?: string }[];
+      external_reference?: string;
       email?: string;
       buyer?: {
         firstName: string;
@@ -51,12 +50,23 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // 🔹 Adaptamos los items al tipo Items[] del SDK (con id obligatorio)
+    const mpItems = items.map((it, idx) => ({
+      id: it.id ?? String(idx + 1),
+      title: it.title,
+      quantity: it.quantity,
+      unit_price: it.unit_price,
+      // opcional, pero recomendable:
+      currency_id: "PEN" as const,
+    }));
+
     const pref = new Preference(mpClient);
 
     const preference = await pref.create({
       body: {
-        items,
+        items: mpItems,
         external_reference: external_reference ?? undefined,
+
         payer: email
           ? {
               email,
@@ -74,6 +84,7 @@ export async function POST(req: NextRequest) {
                 : undefined,
             }
           : undefined,
+
         shipments: shipping
           ? {
               cost: shipping.cost,
@@ -88,7 +99,7 @@ export async function POST(req: NextRequest) {
             }
           : undefined,
 
-        // 🔹 URLs de retorno usando el dominio configurado
+        // 🔹 URLs de retorno
         back_urls: {
           success: `${BASE_URL}/checkout/success`,
           failure: `${BASE_URL}/checkout/failure`,
@@ -96,25 +107,21 @@ export async function POST(req: NextRequest) {
         },
         auto_return: "approved",
 
-        // 🔹 Webhook para estados en tiempo real
+        // 🔹 Webhook (Mercado Pago llamará aquí cuando cambie el pago)
         notification_url: `${BASE_URL}/api/mercadopago/webhook`,
       },
     });
 
-    // 🔹 Guardar el mp_preference_id en la orden (si tenemos external_reference = orderId)
+    // 🔹 Guardamos el id de la preferencia en la orden (útil para debug)
     if (external_reference && preference.id) {
-      try {
-        const supabase = createClient();
-        await supabase
-          .from("orders")
-          .update({
-            mp_preference_id: preference.id,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", external_reference); // external_reference es el orderId que mandas desde el front
-      } catch (e) {
-        console.error("No se pudo actualizar mp_preference_id en orders:", e);
-      }
+      const supabase = createClient();
+      await supabase
+        .from("orders")
+        .update({
+          mp_preference_id: preference.id,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", external_reference);
     }
 
     return NextResponse.json({ ok: true, id: preference.id });
