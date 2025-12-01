@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
                 state_name: shipping.departamento,
                 city_name: shipping.provincia,
                 street_name: shipping.direccion,
-                comment: shipping.referencia,
+                // comment: shipping.referencia, // <- eliminado, el tipo ReceiverAddress no lo acepta
               },
             }
           : undefined,
