@@ -127,7 +127,7 @@ export default function CanalesDeAtencionPage() {
 
               <div className="mt-6 flex gap-2">
                 <Link
-                  href="https://wa.me/51902138542"
+                  href="https://wa.me/51908577861"
                   target="_blank"
                   className="inline-flex items-center rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted/60"
                 >
@@ -191,9 +191,9 @@ export default function CanalesDeAtencionPage() {
             <ChannelCard
               title="WhatsApp"
               desc="Atención inmediata, estado de pedido y soporte post-venta."
-              href="https://wa.me/51902138542"
+              href="https://wa.me/51908577861"
               icon={<span className="text-lg">💬</span>}
-              extra={<span className="text-xs text-muted-foreground">+51 902 138 542</span>}
+              extra={<span className="text-xs text-muted-foreground">+51 908 577 861</span>}
             />
 
             {/* Correo */}
@@ -256,7 +256,7 @@ export default function CanalesDeAtencionPage() {
 
               <div className="mt-5 grid gap-2">
                 <Link
-                  href="https://wa.me/51902138542"
+                  href="https://wa.me/51908577861"
                   target="_blank"
                   className="inline-flex items-center justify-center rounded-md border px-4 py-2 text-sm hover:bg-muted/60"
                 >
@@ -296,7 +296,7 @@ export default function CanalesDeAtencionPage() {
 
             <div className="mt-4 flex items-center justify-center gap-2">
               <Link
-                href="https://wa.me/51902138542"
+                href="https://wa.me/51908577861"
                 target="_blank"
                 className="inline-flex rounded-md border px-4 py-2 text-sm hover:bg-muted/70"
               >

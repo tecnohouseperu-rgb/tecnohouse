@@ -41,8 +41,8 @@ export default function Page() {
           <h2 className="text-lg font-semibold">TecnoHouse Perú – ATE</h2>
           <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
             <Info label="Dirección" value="Vulcano 127, ATE – Lima" />
-            <Info label="Horario" value="Lun–Sáb 09:00–18:00" />
-            <Info label="Contacto" value="+51 902 138 542 (WhatsApp)" />
+            <Info label="Horario" value="Lun–Sáb 09:00–17:00" />
+            <Info label="Contacto" value="+51 908 577 861 (WhatsApp)" />
           </div>
 
           <div className="mt-4 aspect-[16/10] overflow-hidden rounded-lg border">
@@ -69,7 +69,7 @@ export default function Page() {
             Escríbenos y te guiamos con rutas y tiempos.
           </p>
           <div className="mt-3 flex flex-col gap-2">
-            <Link href="https://wa.me/51902138542" target="_blank" className="inline-flex rounded-md border px-4 py-2 text-sm hover:bg-muted/70">
+            <Link href="https://wa.me/51908577861" target="_blank" className="inline-flex rounded-md border px-4 py-2 text-sm hover:bg-muted/70">
               WhatsApp
             </Link>
             <Link href="https://www.facebook.com/profile.php?id=61583297501092" target="_blank" className="inline-flex rounded-md border px-4 py-2 text-sm hover:bg-muted/70">

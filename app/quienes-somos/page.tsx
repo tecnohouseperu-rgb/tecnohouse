@@ -99,7 +99,7 @@ export default function QuienesSomosPage() {
             contactPoint: {
               "@type": "ContactPoint",
               contactType: "customer service",
-              telephone: "+51 902138542",
+              telephone: "+51 908577861",
               areaServed: "PE",
               availableLanguage: ["es"],
             },
@@ -282,11 +282,11 @@ export default function QuienesSomosPage() {
             <div>
               <p className="text-sm text-muted-foreground mb-1">WhatsApp</p>
               <Link
-                href="https://wa.me/51902138542"
+                href="https://wa.me/51908577861"
                 target="_blank"
                 className="inline-flex rounded-md border px-3 py-2 text-sm hover:bg-muted/70"
               >
-                +51 902 138 542
+                +51 908 577 861
               </Link>
             </div>
             <div>

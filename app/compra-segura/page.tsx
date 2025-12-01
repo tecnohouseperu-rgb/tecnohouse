@@ -96,7 +96,7 @@ export default function CompraSeguraPage() {
                   Centro de ayuda
                 </Link>
                 <Link
-                  href="https://wa.me/51902138542"
+                  href="https://wa.me/51908577861"
                   target="_blank"
                   className="inline-flex items-center rounded-md border px-4 py-2 text-sm hover:bg-muted/60"
                 >
@@ -223,7 +223,7 @@ export default function CompraSeguraPage() {
             </p>
             <div className="mt-4 flex items-center justify-center gap-2">
               <Link
-                href="https://wa.me/51902138542"
+                href="https://wa.me/51908577861"
                 target="_blank"
                 className="inline-flex rounded-md border px-4 py-2 text-sm hover:bg-muted/70"
               >

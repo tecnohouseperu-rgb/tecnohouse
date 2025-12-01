@@ -16,6 +16,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useCart } from "./cart-provider"; // 👈 usamos el carrito
+import { usePathname } from "next/navigation"; // 👈 NUEVO: para saber en qué ruta estamos
 
 // ⬇️ FAB de carrito (flotante) solo en cliente
 const CartFab = dynamic(() => import("@/app/components/CartFab"), { ssr: false });
@@ -252,6 +253,12 @@ export default function Header() {
     0
   );
   const subtotalLabel = `S/ ${subtotal.toFixed(2)}`;
+
+  // 👉 Ruta actual para decidir cuándo ocultar el FAB
+  const pathname = usePathname();
+  const hideCartFab = pathname?.startsWith("/checkout"); 
+  // si quieres ocultarlo también en /carrito:
+  // const hideCartFab = pathname?.startsWith("/checkout") || pathname === "/carrito";
 
   // Cierre del mega por click afuera / ESC
   const megaRef = useRef<HTMLDivElement | null>(null);
@@ -585,7 +592,7 @@ export default function Header() {
       )}
 
       {/* ✅ FAB de carrito para móvil (abajo a la derecha, sin duplicados) */}
-      <CartFab z={900} threshold={200} />
+      {!hideCartFab && <CartFab z={900} threshold={200} />}
     </header>
   );
 }

@@ -163,7 +163,7 @@ export default function CambiosPage() {
             </ul>
             <p>
               Escríbenos por WhatsApp al{" "}
-              <span className="font-medium">+51 902 138 542</span> o al correo{" "}
+              <span className="font-medium">+51 908 577 861</span> o al correo{" "}
               <span className="font-medium">ventas@tecnohouse.pe</span>.
             </p>
           </div>
@@ -186,7 +186,7 @@ export default function CambiosPage() {
                 Centro de Ayuda
               </Link>
               <a
-                href="https://wa.me/51902138542"
+                href="https://wa.me/51908577861"
                 target="_blank"
                 className="inline-flex rounded-md border px-4 py-2 text-sm hover:bg-muted/60"
               >

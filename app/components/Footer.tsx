@@ -37,7 +37,7 @@ export default function Footer() {
             <li className="flex items-center gap-3">
               <Phone className="size-4 text-neutral-400" />
               <Link
-                href="https://wa.me/51902138542"
+                href="https://wa.me/51908577861"
                 className="hover:text-white transition-colors"
                 target="_blank"
               >
@@ -51,10 +51,10 @@ export default function Footer() {
             <li className="flex items-center gap-3">
               <Mail className="size-4 text-neutral-400" />
               <Link
-                href="mailto:servicioalcliente@tecnohouseperu.com"
+                href="mailto:soporte@tecnohouseperu.com"
                 className="hover:text-white transition-colors"
               >
-                servicioalcliente@tecnohouseperu.com
+                soporte@tecnohouseperu.com
               </Link>
             </li>
           </ul>

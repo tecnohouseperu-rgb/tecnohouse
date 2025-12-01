@@ -205,11 +205,11 @@ export default function GarantiaPage() {
                 </p>
                 <div className="mt-3">
                   <Link
-                    href="https://wa.me/51902138542?text=Hola%20TecnoHouse,%20necesito%20soporte%20de%20garant%C3%ADa."
+                    href="https://wa.me/51908577861?text=Hola%20TecnoHouse,%20necesito%20soporte%20de%20garant%C3%ADa."
                     target="_blank"
                     className="inline-flex rounded-md border px-3 py-2 text-sm hover:bg-muted/70"
                   >
-                    WhatsApp: +51 902 138 542
+                    WhatsApp: +51 908 577 861
                   </Link>
                 </div>
               </Card>
@@ -269,7 +269,7 @@ export default function GarantiaPage() {
                 Escribir al correo
               </Link>
               <Link
-                href="https://wa.me/51902138542?text=Hola%20TecnoHouse,%20necesito%20soporte%20de%20garant%C3%ADa."
+                href="https://wa.me/51908577861?text=Hola%20TecnoHouse,%20necesito%20soporte%20de%20garant%C3%ADa."
                 target="_blank"
                 className="inline-flex rounded-md border px-4 py-2 text-sm hover:bg-muted/70"
               >
