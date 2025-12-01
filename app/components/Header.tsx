@@ -13,19 +13,19 @@ import {
   Search,
   X,
 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, FormEvent } from "react";
 import dynamic from "next/dynamic";
-import { useCart } from "./cart-provider"; // 👈 usamos el carrito
-import { usePathname } from "next/navigation"; // 👈 NUEVO: para saber en qué ruta estamos
+import { useCart } from "./cart-provider";
+import { usePathname, useRouter } from "next/navigation";
 
-// ⬇️ FAB de carrito (flotante) solo en cliente
-const CartFab = dynamic(() => import("@/app/components/CartFab"), { ssr: false });
+const CartFab = dynamic(() => import("@/app/components/CartFab"), {
+  ssr: false,
+});
 
 function cx(...s: (string | false | undefined)[]) {
   return s.filter(Boolean).join(" ");
 }
 
-/* ====== TIPOS ====== */
 type MegaItem = { label: string; href: string };
 type MegaGroup = { title: string; items: MegaItem[] };
 type MegaCategory = {
@@ -42,9 +42,24 @@ const MEGA_DATA: MegaCategory[] = [
     label: "Audio",
     href: "/categorias/audio",
     groups: [
-      { title: "Audífonos", items: [{ label: "Audífonos", href: "/categorias/audio/audifonos" }] },
-      { title: "Parlantes", items: [{ label: "Parlantes", href: "/categorias/audio/parlantes" }] },
-      { title: "Micrófonos", items: [{ label: "Micrófonos", href: "/categorias/audio/microfonos" }] },
+      {
+        title: "Audífonos",
+        items: [
+          { label: "Audífonos", href: "/categorias/audio/audifonos" },
+        ],
+      },
+      {
+        title: "Parlantes",
+        items: [
+          { label: "Parlantes", href: "/categorias/audio/parlantes" },
+        ],
+      },
+      {
+        title: "Micrófonos",
+        items: [
+          { label: "Micrófonos", href: "/categorias/audio/microfonos" },
+        ],
+      },
     ],
   },
   {
@@ -52,16 +67,29 @@ const MEGA_DATA: MegaCategory[] = [
     label: "Celulares y Accesorios",
     href: "/categorias/celulares",
     groups: [
-      { title: "Celulares", items: [{ label: "Celulares", href: "/categorias/celulares/celulares" }] },
+      {
+        title: "Celulares",
+        items: [
+          { label: "Celulares", href: "/categorias/celulares/celulares" },
+        ],
+      },
       {
         title: "Relojes inteligentes",
-        items: [{ label: "Relojes inteligentes", href: "/categorias/celulares/relojes-inteligentes" }],
+        items: [
+          {
+            label: "Relojes inteligentes",
+            href: "/categorias/celulares/relojes-inteligentes",
+          },
+        ],
       },
       {
         title: "Accesorios",
         items: [
           { label: "Cargadores", href: "/categorias/celulares/cargadores" },
-          { label: "Baterías externas", href: "/categorias/celulares/baterias-externas" },
+          {
+            label: "Baterías externas",
+            href: "/categorias/celulares/baterias-externas",
+          },
           { label: "Cables", href: "/categorias/celulares/cables" },
         ],
       },
@@ -72,11 +100,35 @@ const MEGA_DATA: MegaCategory[] = [
     label: "Gamer",
     href: "/categorias/gamer",
     groups: [
-      { title: "Consolas", items: [{ label: "Consolas", href: "/categorias/gamer/consolas" }] },
+      {
+        title: "Consolas",
+        items: [{ label: "Consolas", href: "/categorias/gamer/consolas" }],
+      },
       { title: "Juegos", items: [{ label: "Juegos", href: "/categorias/gamer/juegos" }] },
-      { title: "Laptops gamers", items: [{ label: "Laptops gamers", href: "/categorias/gamer/laptops-gamers" }] },
-      { title: "Mandos gamers", items: [{ label: "Mandos gamers", href: "/categorias/gamer/mandos-gamers" }] },
-      { title: "Sillas y mesas", items: [{ label: "Sillas y mesas", href: "/categorias/gamer/sillas-mesas" }] },
+      {
+        title: "Laptops gamers",
+        items: [
+          {
+            label: "Laptops gamers",
+            href: "/categorias/gamer/laptops-gamers",
+          },
+        ],
+      },
+      {
+        title: "Mandos gamers",
+        items: [
+          {
+            label: "Mandos gamers",
+            href: "/categorias/gamer/mandos-gamers",
+          },
+        ],
+      },
+      {
+        title: "Sillas y mesas",
+        items: [
+          { label: "Sillas y mesas", href: "/categorias/gamer/sillas-mesas" },
+        ],
+      },
     ],
   },
   {
@@ -86,11 +138,21 @@ const MEGA_DATA: MegaCategory[] = [
     groups: [
       {
         title: "Laptops y accesorios",
-        items: [{ label: "Laptops y accesorios", href: "/categorias/computo/laptops-accesorios" }],
+        items: [
+          {
+            label: "Laptops y accesorios",
+            href: "/categorias/computo/laptops-accesorios",
+          },
+        ],
       },
       {
         title: "Impresoras y escáneres",
-        items: [{ label: "Impresoras y escáneres", href: "/categorias/computo/impresoras-escaners" }],
+        items: [
+          {
+            label: "Impresoras y escáneres",
+            href: "/categorias/computo/impresoras-escaners",
+          },
+        ],
       },
       { title: "Tablets", items: [{ label: "Tablets", href: "/categorias/computo/tablets" }] },
     ],
@@ -102,15 +164,30 @@ const MEGA_DATA: MegaCategory[] = [
     groups: [
       {
         title: "Convertidores smart",
-        items: [{ label: "Convertidores smart", href: "/categorias/smart-home/convertidores-smart" }],
+        items: [
+          {
+            label: "Convertidores smart",
+            href: "/categorias/smart-home/convertidores-smart",
+          },
+        ],
       },
       {
         title: "Parlantes inteligentes",
-        items: [{ label: "Parlantes inteligentes", href: "/categorias/smart-home/parlantes-inteligentes" }],
+        items: [
+          {
+            label: "Parlantes inteligentes",
+            href: "/categorias/smart-home/parlantes-inteligentes",
+          },
+        ],
       },
       {
         title: "Aspiradores, robots y accesorios",
-        items: [{ label: "Aspiradores, robots y accesorios", href: "/categorias/smart-home/aspiradores-robots-accesorios" }],
+        items: [
+          {
+            label: "Aspiradores, robots y accesorios",
+            href: "/categorias/smart-home/aspiradores-robots-accesorios",
+          },
+        ],
       },
     ],
   },
@@ -118,18 +195,46 @@ const MEGA_DATA: MegaCategory[] = [
     key: "tv-video",
     label: "TV y Video",
     href: "/categorias/tv-video",
-    groups: [{ title: "Televisores", items: [{ label: "Televisores", href: "/categorias/tv-video/televisores" }] }],
+    groups: [
+      {
+        title: "Televisores",
+        items: [
+          { label: "Televisores", href: "/categorias/tv-video/televisores" },
+        ],
+      },
+    ],
   },
   {
     key: "electrohogar",
     label: "Electrohogar",
     href: "/categorias/electrohogar",
     groups: [
-      { title: "Refrigeración", items: [{ label: "Refrigeración", href: "/categorias/electrohogar/refrigeracion" }] },
+      {
+        title: "Refrigeración",
+        items: [
+          {
+            label: "Refrigeración",
+            href: "/categorias/electrohogar/refrigeracion",
+          },
+        ],
+      },
       { title: "Cocinas", items: [{ label: "Cocinas", href: "/categorias/electrohogar/cocinas" }] },
       { title: "Lavado", items: [{ label: "Lavado", href: "/categorias/electrohogar/lavado" }] },
-      { title: "Seguridad", items: [{ label: "Seguridad", href: "/categorias/electrohogar/seguridad" }] },
-      { title: "Electrodomésticos", items: [{ label: "Electrodomésticos", href: "/categorias/electrohogar/electrodomesticos" }] },
+      {
+        title: "Seguridad",
+        items: [
+          { label: "Seguridad", href: "/categorias/electrohogar/seguridad" },
+        ],
+      },
+      {
+        title: "Electrodomésticos",
+        items: [
+          {
+            label: "Electrodomésticos",
+            href: "/categorias/electrohogar/electrodomesticos",
+          },
+        ],
+      },
     ],
   },
   {
@@ -140,9 +245,15 @@ const MEGA_DATA: MegaCategory[] = [
       {
         title: "Movilidad",
         items: [
-          { label: "Scooters eléctricos", href: "/categorias/deportes/scooters-electricos" },
+          {
+            label: "Scooters eléctricos",
+            href: "/categorias/deportes/scooters-electricos",
+          },
           { label: "Bicicletas", href: "/categorias/deportes/bicicletas" },
-          { label: "Motos eléctricas", href: "/categorias/deportes/motos-electricas" },
+          {
+            label: "Motos eléctricas",
+            href: "/categorias/deportes/motos-electricas",
+          },
         ],
       },
     ],
@@ -151,15 +262,23 @@ const MEGA_DATA: MegaCategory[] = [
     key: "drones",
     label: "Drones",
     href: "/categorias/drones",
-    groups: [{ title: "Drones", items: [{ label: "Drones", href: "/categorias/drones/drones" }] }],
+    groups: [
+      { title: "Drones", items: [{ label: "Drones", href: "/categorias/drones/drones" }] },
+    ],
   },
   {
     key: "fotografia",
     label: "Fotografía",
     href: "/categorias/fotografia",
     groups: [
-      { title: "Cámaras", items: [{ label: "Cámaras", href: "/categorias/fotografia/camaras" }] },
-      { title: "Soporte", items: [{ label: "Soporte", href: "/categorias/fotografia/soporte" }] },
+      {
+        title: "Cámaras",
+        items: [{ label: "Cámaras", href: "/categorias/fotografia/camaras" }],
+      },
+      {
+        title: "Soporte",
+        items: [{ label: "Soporte", href: "/categorias/fotografia/soporte" }],
+      },
     ],
   },
   {
@@ -167,10 +286,18 @@ const MEGA_DATA: MegaCategory[] = [
     label: "Mascotas",
     href: "/categorias/mascotas",
     groups: [
-      { title: "Rascadores", items: [{ label: "Rascadores", href: "/categorias/mascotas/rascadores" }] },
+      {
+        title: "Rascadores",
+        items: [{ label: "Rascadores", href: "/categorias/mascotas/rascadores" }],
+      },
       {
         title: "Dispensadores electrónicos de comida",
-        items: [{ label: "Dispensadores electrónicos de comida", href: "/categorias/mascotas/dispensadores-comida" }],
+        items: [
+          {
+            label: "Dispensadores electrónicos de comida",
+            href: "/categorias/mascotas/dispensadores-comida",
+          },
+        ],
       },
       { title: "Comida", items: [{ label: "Comida", href: "/categorias/mascotas/comida" }] },
     ],
@@ -180,8 +307,14 @@ const MEGA_DATA: MegaCategory[] = [
     label: "Juguetería",
     href: "/categorias/jugueteria",
     groups: [
-      { title: "Educativos", items: [{ label: "Educativos", href: "/categorias/jugueteria/educativos" }] },
-      { title: "Otros juguetes", items: [{ label: "Otros juguetes", href: "/categorias/jugueteria/otros" }] },
+      {
+        title: "Educativos",
+        items: [{ label: "Educativos", href: "/categorias/jugueteria/educativos" }],
+      },
+      {
+        title: "Otros juguetes",
+        items: [{ label: "Otros juguetes", href: "/categorias/jugueteria/otros" }],
+      },
     ],
   },
   {
@@ -189,10 +322,26 @@ const MEGA_DATA: MegaCategory[] = [
     label: "Mundo Bebé",
     href: "/categorias/bebe",
     groups: [
-      { title: "Coches para bebés", items: [{ label: "Coches para bebés", href: "/categorias/bebe/coches" }] },
-      { title: "Sillas para comer", items: [{ label: "Sillas para comer", href: "/categorias/bebe/sillas-comer" }] },
-      { title: "Corrales para bebés", items: [{ label: "Corrales para bebés", href: "/categorias/bebe/corrales" }] },
-      { title: "Toboganes", items: [{ label: "Toboganes", href: "/categorias/bebe/toboganes" }] },
+      {
+        title: "Coches para bebés",
+        items: [{ label: "Coches para bebés", href: "/categorias/bebe/coches" }],
+      },
+      {
+        title: "Sillas para comer",
+        items: [
+          { label: "Sillas para comer", href: "/categorias/bebe/sillas-comer" },
+        ],
+      },
+      {
+        title: "Corrales para bebés",
+        items: [
+          { label: "Corrales para bebés", href: "/categorias/bebe/corrales" },
+        ],
+      },
+      {
+        title: "Toboganes",
+        items: [{ label: "Toboganes", href: "/categorias/bebe/toboganes" }],
+      },
     ],
   },
   {
@@ -200,8 +349,14 @@ const MEGA_DATA: MegaCategory[] = [
     label: "Viajes",
     href: "/categorias/viajes",
     groups: [
-      { title: "Equipaje", items: [{ label: "Equipaje", href: "/categorias/viajes/equipaje" }] },
-      { title: "Mochilas", items: [{ label: "Mochilas", href: "/categorias/viajes/mochilas" }] },
+      {
+        title: "Equipaje",
+        items: [{ label: "Equipaje", href: "/categorias/viajes/equipaje" }],
+      },
+      {
+        title: "Mochilas",
+        items: [{ label: "Mochilas", href: "/categorias/viajes/mochilas" }],
+      },
     ],
   },
   {
@@ -213,12 +368,27 @@ const MEGA_DATA: MegaCategory[] = [
         title: "Temporada",
         items: [
           { label: "Árboles", href: "/categorias/navidad/arboles" },
-          { label: "Pijamas adultos", href: "/categorias/navidad/pijamas-adultos" },
-          { label: "Pijamas niños/niñas", href: "/categorias/navidad/pijamas-ninos" },
-          { label: "Polos adultos", href: "/categorias/navidad/polos-adultos" },
-          { label: "Polos niños", href: "/categorias/navidad/polos-ninos" },
+          {
+            label: "Pijamas adultos",
+            href: "/categorias/navidad/pijamas-adultos",
+          },
+          {
+            label: "Pijamas niños/niñas",
+            href: "/categorias/navidad/pijamas-ninos",
+          },
+          {
+            label: "Polos adultos",
+            href: "/categorias/navidad/polos-adultos",
+          },
+          {
+            label: "Polos niños",
+            href: "/categorias/navidad/polos-ninos",
+          },
           { label: "Disfraces", href: "/categorias/navidad/disfraces" },
-          { label: "Adornos navideños", href: "/categorias/navidad/adornos" },
+          {
+            label: "Adornos navideños",
+            href: "/categorias/navidad/adornos",
+          },
         ],
       },
     ],
@@ -229,36 +399,61 @@ const MEGA_DATA: MegaCategory[] = [
     href: "/categorias/crocs",
     groups: [
       { title: "Niños", items: [{ label: "Niños", href: "/categorias/crocs/ninos" }] },
-      { title: "Adultos", items: [{ label: "Adultos", href: "/categorias/crocs/adultos" }] },
+      {
+        title: "Adultos",
+        items: [{ label: "Adultos", href: "/categorias/crocs/adultos" }],
+      },
     ],
   },
 ];
 
-const CATEGORY_INDEX = MEGA_DATA.reduce<Record<string, MegaCategory>>((acc, c) => {
-  acc[c.key] = c;
-  return acc;
-}, {});
+const CATEGORY_INDEX = MEGA_DATA.reduce<Record<string, MegaCategory>>(
+  (acc, c) => {
+    acc[c.key] = c;
+    return acc;
+  },
+  {}
+);
 
 export default function Header() {
   const [openMega, setOpenMega] = useState(false);
   const [activeKey, setActiveKey] = useState<string>(MEGA_DATA[0].key);
   const [mobileDrawer, setMobileDrawer] = useState(false);
-  const activeCategory = useMemo(() => CATEGORY_INDEX[activeKey], [activeKey]);
+  const activeCategory = useMemo(
+    () => CATEGORY_INDEX[activeKey],
+    [activeKey]
+  );
 
   // 👉 Datos del carrito para el botón de desktop
   const { items } = useCart();
   const itemCount = items.reduce((acc, it) => acc + it.qty, 0);
-  const subtotal = items.reduce(
-    (acc, it) => acc + (it.price ?? 0) * it.qty,
-    0
-  );
+  const subtotal = items.reduce((acc, it) => acc + (it.price ?? 0) * it.qty, 0);
   const subtotalLabel = `S/ ${subtotal.toFixed(2)}`;
 
   // 👉 Ruta actual para decidir cuándo ocultar el FAB
   const pathname = usePathname();
-  const hideCartFab = pathname?.startsWith("/checkout"); 
+  const hideCartFab = pathname?.startsWith("/checkout");
   // si quieres ocultarlo también en /carrito:
   // const hideCartFab = pathname?.startsWith("/checkout") || pathname === "/carrito";
+
+  // 👉 Router para búsqueda
+  const router = useRouter();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [mobileSearchTerm, setMobileSearchTerm] = useState("");
+
+  const handleSearch = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const q = searchTerm.trim();
+    if (!q) return;
+    router.push(`/buscar?q=${encodeURIComponent(q)}`);
+  };
+
+  const handleSearchMobile = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const q = mobileSearchTerm.trim();
+    if (!q) return;
+    router.push(`/buscar?q=${encodeURIComponent(q)}`);
+  };
 
   // Cierre del mega por click afuera / ESC
   const megaRef = useRef<HTMLDivElement | null>(null);
@@ -266,9 +461,11 @@ export default function Header() {
     if (!openMega) return;
     const onDocClick = (e: MouseEvent | TouchEvent) => {
       const target = e.target as Node;
-      if (megaRef.current && !megaRef.current.contains(target)) setOpenMega(false);
+      if (megaRef.current && !megaRef.current.contains(target))
+        setOpenMega(false);
     };
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpenMega(false);
+    const onKey = (e: KeyboardEvent) =>
+      e.key === "Escape" && setOpenMega(false);
     document.addEventListener("mousedown", onDocClick);
     document.addEventListener("touchstart", onDocClick, { passive: true });
     document.addEventListener("keydown", onKey);
@@ -284,7 +481,8 @@ export default function Header() {
   useEffect(() => {
     const body = document.body;
     if (mobileDrawer) {
-      scrollYRef.current = window.scrollY || window.pageYOffset || 0;
+      scrollYRef.current =
+        window.scrollY || window.pageYOffset || 0;
       body.style.position = "fixed";
       body.style.top = `-${scrollYRef.current}px`;
       body.style.left = "0";
@@ -322,10 +520,16 @@ export default function Header() {
           <span>Envíos en todo el Perú</span>
         </div>
         <div className="flex items-center gap-4">
-          <Link href="/tiendas" className="hover:text-foreground flex items-center gap-1">
+          <Link
+            href="/tiendas"
+            className="hover:text-foreground flex items-center gap-1"
+          >
             <Store size={14} /> Nuestras Tiendas
           </Link>
-          <Link href="/canales-de-atencion" className="hover:text-foreground flex items-center gap-1">
+          <Link
+            href="/canales-de-atencion"
+            className="hover:text-foreground flex items-center gap-1"
+          >
             <HelpCircle size={14} /> Ayuda
           </Link>
         </div>
@@ -343,7 +547,9 @@ export default function Header() {
               className="h-9 w-auto object-contain"
               priority
             />
-            <span className="text-lg md:text-xl font-semibold tracking-tight">TecnoHouse Perú</span>
+            <span className="text-lg md:text-xl font-semibold tracking-tight">
+              TecnoHouse Perú
+            </span>
           </Link>
 
           {/* Categorías (desktop) */}
@@ -359,16 +565,29 @@ export default function Header() {
             >
               <Menu size={18} />
               Categorías
-              <ChevronDown size={16} className={cx("transition", openMega && "rotate-180")} />
+              <ChevronDown
+                size={16}
+                className={cx("transition", openMega && "rotate-180")}
+              />
             </button>
           </div>
 
-          {/* Search (desktop) */}
-          <form action="/buscar" className="flex-1 max-w-3xl mx-auto hidden md:flex">
+          {/* Search (desktop) con botón submit en la lupa */}
+          <form
+            onSubmit={handleSearch}
+            className="flex-1 max-w-3xl mx-auto hidden md:flex"
+          >
             <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+              <button
+                type="submit"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                aria-label="Buscar"
+              >
+                <Search size={18} />
+              </button>
               <input
-                name="q"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="¿Qué estás buscando?"
                 className="w-full pl-10 pr-4 h-10 rounded-md border bg-background text-sm outline-none focus:ring-2 ring-primary/20"
                 autoComplete="off"
@@ -433,7 +652,11 @@ export default function Header() {
 
       {/* Mega menú desktop */}
       {openMega && (
-        <div id="mega-menu" ref={megaRef} className="hidden md:block border-t bg-white">
+        <div
+          id="mega-menu"
+          ref={megaRef}
+          className="hidden md:block border-t bg-white"
+        >
           <div className="max-w-7xl mx-auto grid grid-cols-[240px_1fr] min-h-[420px]">
             <aside className="border-r p-2">
               <ul className="space-y-1">
@@ -442,7 +665,8 @@ export default function Header() {
                     <button
                       className={cx(
                         "w-full text-left px-3 py-2 rounded-md text-sm hover:bg-muted/70 transition",
-                        activeKey === cat.key && "bg-muted/70 font-medium"
+                        activeKey === cat.key &&
+                          "bg-muted/70 font-medium"
                       )}
                       onMouseEnter={() => setActiveKey(cat.key)}
                       onFocus={() => setActiveKey(cat.key)}
@@ -456,7 +680,9 @@ export default function Header() {
 
             <section className="p-4">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-base md:text-lg font-semibold">{activeCategory?.label}</h3>
+                <h3 className="text-base md:text-lg font-semibold">
+                  {activeCategory?.label}
+                </h3>
                 <Link
                   href={activeCategory?.href ?? "#"}
                   className="text-sm text-primary hover:underline"
@@ -470,7 +696,9 @@ export default function Header() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {activeCategory.groups.map((group) => (
                     <div key={group.title}>
-                      <p className="text-sm font-semibold mb-2 text-red-600">{group.title}</p>
+                      <p className="text-sm font-semibold mb-2 text-red-600">
+                        {group.title}
+                      </p>
                       <ul className="space-y-1">
                         {group.items.map((it) => (
                           <li key={it.href}>
@@ -488,21 +716,30 @@ export default function Header() {
                   ))}
                 </div>
               ) : (
-                <div className="text-sm text-muted-foreground">Próximamente subcategorías…</div>
+                <div className="text-sm text-muted-foreground">
+                  Próximamente subcategorías…
+                </div>
               )}
             </section>
           </div>
         </div>
       )}
 
-      {/* Search móvil */}
+      {/* Search móvil con botón submit en la lupa */}
       <div className="md:hidden border-t">
         <div className="px-4 py-2">
-          <form action="/buscar">
+          <form onSubmit={handleSearchMobile}>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+              <button
+                type="submit"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                aria-label="Buscar"
+              >
+                <Search size={18} />
+              </button>
               <input
-                name="q"
+                value={mobileSearchTerm}
+                onChange={(e) => setMobileSearchTerm(e.target.value)}
                 placeholder="¿Qué estás buscando?"
                 className="w-full pl-10 pr-4 h-10 rounded-md border bg-background text-sm outline-none focus:ring-2 ring-primary/20"
                 autoComplete="off"
@@ -514,7 +751,11 @@ export default function Header() {
 
       {/* Drawer móvil */}
       {mobileDrawer && (
-        <div className="md:hidden fixed inset-0 z-[60]" role="dialog" aria-modal="true">
+        <div
+          className="md:hidden fixed inset-0 z-[60]"
+          role="dialog"
+          aria-modal="true"
+        >
           {/* Overlay */}
           <button
             className="absolute inset-0 bg-black/40"
@@ -531,7 +772,11 @@ export default function Header() {
           >
             <div className="flex items-center justify-between border-b px-4 h-12">
               <span className="text-sm font-medium">Categorías</span>
-              <button className="p-2 rounded-md hover:bg-muted/70" onClick={() => setMobileDrawer(false)} aria-label="Cerrar">
+              <button
+                className="p-2 rounded-md hover:bg-muted/70"
+                onClick={() => setMobileDrawer(false)}
+                aria-label="Cerrar"
+              >
                 <X size={18} />
               </button>
             </div>
@@ -540,9 +785,14 @@ export default function Header() {
               <ul className="space-y-2">
                 {MEGA_DATA.map((cat, i) => (
                   <li key={cat.key} className="border rounded-md">
-                    <details className="group [&_summary::-webkit-details-marker]:hidden" open={i === 0}>
+                    <details
+                      className="group [&_summary::-webkit-details-marker]:hidden"
+                      open={i === 0}
+                    >
                       <summary className="cursor-pointer list-none select-none px-3 py-2 flex items-center justify-between">
-                        <span className="text-sm font-medium">{cat.label}</span>
+                        <span className="text-sm font-medium">
+                          {cat.label}
+                        </span>
                         <ChevronDown className="size-4 transition-transform group-open:rotate-180" />
                       </summary>
 
@@ -551,14 +801,18 @@ export default function Header() {
                           <ul className="space-y-3">
                             {cat.groups.map((group) => (
                               <li key={group.title}>
-                                <p className="text-xs font-semibold text-red-600 mb-1">{group.title}</p>
+                                <p className="text-xs font-semibold text-red-600 mb-1">
+                                  {group.title}
+                                </p>
                                 <ul className="space-y-1">
                                   {group.items.map((it) => (
                                     <li key={it.href}>
                                       <Link
                                         href={it.href}
                                         className="text-sm text-muted-foreground hover:text-foreground"
-                                        onClick={() => setMobileDrawer(false)}
+                                        onClick={() =>
+                                          setMobileDrawer(false)
+                                        }
                                       >
                                         {it.label}
                                       </Link>
@@ -569,7 +823,9 @@ export default function Header() {
                             ))}
                           </ul>
                         ) : (
-                          <div className="text-xs text-muted-foreground">Próximamente subcategorías…</div>
+                          <div className="text-xs text-muted-foreground">
+                            Próximamente subcategorías…
+                          </div>
                         )}
 
                         <div className="pt-3">
