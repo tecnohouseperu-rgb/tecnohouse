@@ -5,7 +5,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { initMercadoPago, Wallet } from "@mercadopago/sdk-react";
 import Image from "next/image";
 
-
 // ====== Tipos / helpers ======
 type UbigeoTree = Array<{
   departamento: string;
@@ -152,15 +151,14 @@ export default function Checkout() {
   const { items } = useCart();
 
   // calculamos el subtotal en base a los items del carrito
-const subtotal = useMemo(
-  () =>
-    items.reduce((acc, it) => {
-      const price = it.price ?? 0; // si viene null, usamos 0
-      return acc + price * it.qty;
-    }, 0),
-  [items]
-);
-
+  const subtotal = useMemo(
+    () =>
+      items.reduce((acc, it) => {
+        const price = it.price ?? 0; // si viene null, usamos 0
+        return acc + price * it.qty;
+      }, 0),
+    [items]
+  );
 
   // ===== Comprobante (Boleta / Factura)
   const [receiptType, setReceiptType] = useState<ReceiptType>("boleta");
@@ -378,7 +376,7 @@ const subtotal = useMemo(
   const handleTel = (v: string) =>
     setTelefono(v.replace(/\D/g, "").slice(0, 9));
 
-    // ===== submit: crea la ORDEN; luego se habilita Wallet
+  // ===== submit: crea la ORDEN; luego se habilita Wallet
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
@@ -492,7 +490,7 @@ const subtotal = useMemo(
     return items.map((i) => ({
       title: (i as any).name || (i as any).slug || "Producto",
       quantity: i.qty,
-      unit_price: Number(i.price),
+      unit_price: i.price ?? 0, // aseguramos number
     }));
   }, [items]);
 
@@ -748,8 +746,8 @@ const subtotal = useMemo(
                 : " (Provincia)"
               : ""}{" "}
             · envío{" "}
-            <strong>{shippingMode === "express" ? "express" : "regular"}</strong>.
-            Envío <strong>regular</strong> gratis desde S/ 200.
+            <strong>{shippingMode === "express" ? "express" : "regular"}</strong>
+            . Envío <strong>regular</strong> gratis desde S/ 200.
           </p>
 
           <div className="mt-2 space-y-2 text-xs text-gray-700">
@@ -912,44 +910,51 @@ const subtotal = useMemo(
             <h2 className="text-xl font-bold">Resumen</h2>
 
             <ul className="space-y-3 max-h-[260px] overflow-y-auto pr-1">
-              {items.map((it, idx) => (
-                <li
-                  key={`${it.id}-${(it as any).size ?? "std"}-${idx}`}
-                  className="flex items-center justify-between gap-3"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="relative h-9 w-9 rounded-md bg-gray-50 border border-black/10 flex-shrink-0 overflow-hidden">
-                      <Image
-                        src={it.mainImage || "/placeholder-product.png"}
-                        alt={(it as any).name || "Producto"}
-                        fill
-                        sizes="36px"
-                        className="object-contain p-1"
-                      />
-                    </div>
-                    <div className="min-w-0">
-                      <div
-                        className="text-sm font-medium"
-                        style={{
-                          display: "-webkit-box",
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: "vertical",
-                          overflow: "hidden",
-                        }}
-                      >
-                        {(it as any).name ?? ""}
+              {items.map((it, idx) => {
+                const price = it.price ?? 0;
+                const lineTotal = price * it.qty;
+
+                return (
+                  <li
+                    key={`${it.id}-${(it as any).size ?? "std"}-${idx}`}
+                    className="flex items-center justify-between gap-3"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="relative h-9 w-9 rounded-md bg-gray-50 border border-black/10 flex-shrink-0 overflow-hidden">
+                        <Image
+                          src={it.mainImage || "/placeholder-product.png"}
+                          alt={(it as any).name || "Producto"}
+                          fill
+                          sizes="36px"
+                          className="object-contain p-1"
+                        />
                       </div>
-                      <div className="text-xs text-gray-500">
-                        × {it.qty}
-                        {(it as any).size ? ` · Talla ${(it as any).size}` : ""}
+                      <div className="min-w-0">
+                        <div
+                          className="text-sm font-medium"
+                          style={{
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical",
+                            overflow: "hidden",
+                          }}
+                        >
+                          {(it as any).name ?? ""}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          × {it.qty}
+                          {(it as any).size
+                            ? ` · Talla ${(it as any).size}`
+                            : ""}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="text-sm font-semibold whitespace-nowrap">
-                    S/ {(it.price * it.qty).toFixed(2)}
-                  </div>
-                </li>
-              ))}
+                    <div className="text-sm font-semibold whitespace-nowrap">
+                      S/ {lineTotal.toFixed(2)}
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
 
             {/* Cupón */}
