@@ -141,10 +141,7 @@ function MercadoPagoPay({
               Paga de forma segura con <strong>Mercado Pago</strong>.
             </p>
           </div>
-          <Wallet
-            initialization={{ preferenceId: prefId }}
-            customization={{ texts: { valueProp: "Paga con Mercado Pago" } }}
-          />
+          <Wallet initialization={{ preferenceId: prefId }} />
         </div>
       )}
     </div>
