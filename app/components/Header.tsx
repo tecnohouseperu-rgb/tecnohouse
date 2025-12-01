@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import { useCart } from "./cart-provider"; // 👈 usamos el carrito
 
 // ⬇️ FAB de carrito (flotante) solo en cliente
 const CartFab = dynamic(() => import("@/app/components/CartFab"), { ssr: false });
@@ -243,6 +244,15 @@ export default function Header() {
   const [mobileDrawer, setMobileDrawer] = useState(false);
   const activeCategory = useMemo(() => CATEGORY_INDEX[activeKey], [activeKey]);
 
+  // 👉 Datos del carrito para el botón de desktop
+  const { items } = useCart();
+  const itemCount = items.reduce((acc, it) => acc + it.qty, 0);
+  const subtotal = items.reduce(
+    (acc, it) => acc + (it.price ?? 0) * it.qty,
+    0
+  );
+  const subtotalLabel = `S/ ${subtotal.toFixed(2)}`;
+
   // Cierre del mega por click afuera / ESC
   const megaRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
@@ -297,7 +307,7 @@ export default function Header() {
   }, [mobileDrawer]);
 
   return (
-   <header className="sticky top-[var(--tb-h,0px)] z-50 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 border-b">
+    <header className="sticky top-[var(--tb-h,0px)] z-50 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 border-b">
       {/* Top bar */}
       <div className="hidden md:flex items-center justify-between text-xs text-muted-foreground px-4 lg:px-6 h-8 max-w-7xl mx-auto">
         <div className="flex items-center gap-2">
@@ -370,7 +380,7 @@ export default function Header() {
               Categorías
             </button>
 
-            {/* En desktop mostramos el acceso al carrito en el header */}
+            {/* Enlaces extra desktop */}
             <Link
               href="/tiendas"
               className="hidden md:inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm hover:bg-muted/70"
@@ -387,13 +397,28 @@ export default function Header() {
               <span className="hidden lg:inline">Ayuda</span>
             </Link>
 
-            {/* 👇 Oculto en móvil para evitar doble “carrito” */}
+            {/* ✅ Carrito desktop con cantidad y subtotal */}
             <Link
               href="/carrito"
-              className="hidden md:inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm hover:bg-muted/70"
+              className={cx(
+                "hidden md:inline-flex items-center gap-3 rounded-full border px-3 py-2 text-sm",
+                "bg-black text-white hover:bg-neutral-900 transition"
+              )}
             >
-              <ShoppingCart size={18} />
-              <span className="hidden lg:inline">Carrito</span>
+              <div className="relative inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/10">
+                <ShoppingCart className="h-4 w-4" />
+                {itemCount > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] leading-[18px] text-white text-center bg-red-500">
+                    {itemCount > 99 ? "99+" : itemCount}
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-col items-start leading-tight">
+                <span className="text-xs font-semibold">Carrito</span>
+                <span className="text-[11px] text-neutral-200">
+                  {subtotalLabel}
+                </span>
+              </div>
             </Link>
           </div>
         </div>
