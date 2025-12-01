@@ -219,7 +219,6 @@ export default function ProductDetailClient({
               name={product.name}
               price={product.price ?? 0}
               mainImage={product.main_image_url ?? fallbackImg}
-              selectedColor={selectedColor ?? undefined}
             />
           </div>
 
