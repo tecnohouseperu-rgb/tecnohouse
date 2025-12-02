@@ -1,8 +1,9 @@
+// app/producto/[slug]/ProductDetailClient.tsx
 "use client";
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { X } from "lucide-react";
+import { X, Check } from "lucide-react";
 import { ProductAddToCart } from "../../components/ProductAddToCart";
 
 type ColorVariant = {
@@ -24,7 +25,7 @@ type Product = {
   description: string | null;
   features: string | null;
   attributes: Record<string, any> | null;
-  color_variants: ColorVariant[] | null; // 👈 NUEVO
+  color_variants: ColorVariant[] | null;
 };
 
 type Props = {
@@ -239,17 +240,31 @@ export default function ProductDetailClient({
               id={product.id}
               name={product.name}
               price={product.price ?? 0}
-              mainImage={product.main_image_url ?? fallbackImg}
+              // 👇 usamos la imagen según el color actual
+              mainImage={currentImages[0] ?? product.main_image_url ?? fallbackImg}
+              // 👇 y mandamos el color seleccionado al carrito
+              color={selectedColorName ?? null}
             />
           </div>
 
           {/* COLORES (usando color_variants) */}
           {colorVariants.length > 0 && (
             <div className="rounded-2xl bg-white border border-neutral-200 p-4 shadow-sm">
-              <h3 className="mb-1.5 text-sm font-semibold text-neutral-800">
-                Colores disponibles
-              </h3>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold text-neutral-800">
+                  Colores disponibles
+                </h3>
+                {selectedColorName && (
+                  <p className="text-xs text-neutral-500">
+                    Color seleccionado:{" "}
+                    <span className="font-medium text-neutral-800">
+                      {selectedColorName}
+                    </span>
+                  </p>
+                )}
+              </div>
+
+              <div className="flex flex-wrap gap-3">
                 {colorVariants.map((cv) => {
                   const isActive = selectedColorName === cv.name;
                   return (
@@ -257,19 +272,29 @@ export default function ProductDetailClient({
                       key={cv.name}
                       type="button"
                       onClick={() => setSelectedColorName(cv.name)}
-                      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition ${
-                        isActive
-                          ? "border-black bg-black text-white"
-                          : "border-neutral-300 text-neutral-700 hover:border-black"
-                      }`}
+                      className={`relative flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition
+                        focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-black
+                        ${
+                          isActive
+                            ? "border-black bg-neutral-900 text-white shadow-sm"
+                            : "border-neutral-300 bg-white text-neutral-700 hover:border-neutral-500"
+                        }`}
                     >
-                      {cv.hex && (
-                        <span
-                          className="inline-block h-3 w-3 rounded-full border border-black/10"
-                          style={{ backgroundColor: cv.hex }}
-                        />
+                      <span
+                        className="inline-block h-4 w-4 rounded-full border border-black/10"
+                        style={{
+                          background:
+                            cv.hex ||
+                            "linear-gradient(135deg,#f5f5f5 0%,#e5e5e5 100%)",
+                        }}
+                      />
+                      <span className="capitalize">{cv.name}</span>
+
+                      {isActive && (
+                        <span className="ml-1 inline-flex items-center justify-center">
+                          <Check className="h-3 w-3" />
+                        </span>
                       )}
-                      <span>{cv.name}</span>
                     </button>
                   );
                 })}

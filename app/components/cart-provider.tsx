@@ -14,18 +14,25 @@ type CartItem = {
   price: number | null;
   mainImage: string | null;
   qty: number;
+  color?: string | null; // 👈 NUEVO
 };
 
 type CartContextType = {
   items: CartItem[];
   addItem: (
-    item: { id: number; name: string; price: number | null; mainImage: string | null },
+    item: {
+      id: number;
+      name: string;
+      price: number | null;
+      mainImage: string | null;
+      color?: string | null;
+    },
     qty?: number
   ) => void;
   removeItem: (id: number) => void;
   clear: () => void;
 
-  // 👉 nuevo: actualizar cantidad absoluta
+  // actualizar cantidad absoluta
   updateQty: (id: number, qty: number) => void;
 
   // contador total de unidades
@@ -39,6 +46,7 @@ type CartContextType = {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
+// si quieres evitar conflictos con el formato viejo, puedes cambiar a v2
 const STORAGE_KEY = "tecnohouse-cart-v1";
 
 export function CartProvider({ children }: { children: ReactNode }) {
@@ -68,22 +76,27 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const addItem: CartContextType["addItem"] = (item, qty = 1) => {
     setItems((prev) => {
-      const existing = prev.find((p) => p.id === item.id);
+      // 👇 ahora diferenciamos por id + color
+      const existing = prev.find(
+        (p) => p.id === item.id && p.color === item.color
+      );
+
       let newItems: CartItem[];
 
       if (existing) {
         newItems = prev.map((p) =>
-          p.id === item.id ? { ...p, qty: p.qty + qty } : p
+          p.id === item.id && p.color === item.color
+            ? { ...p, qty: p.qty + qty }
+            : p
         );
       } else {
         newItems = [...prev, { ...item, qty }];
       }
 
       const added =
-        newItems.find((p) => p.id === item.id) ?? {
-          ...item,
-          qty,
-        };
+        newItems.find(
+          (p) => p.id === item.id && p.color === item.color
+        ) ?? { ...item, qty };
 
       setLastAdded(added);
       setToastVisible(true);
@@ -92,6 +105,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const removeItem = (id: number) => {
+    // ⚠️ sigue eliminando por id; si algún día tienes muchos colores del mismo id
+    // y quieres borrar solo uno, luego refinamos esto para usar un identificador único
     setItems((prev) => prev.filter((p) => p.id !== id));
   };
 
@@ -99,7 +114,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems([]);
   };
 
-  // 👇 nuevo: cambiar cantidad directa, sin mostrar toast
+  // cambiar cantidad directa, sin mostrar toast
   const updateQty: CartContextType["updateQty"] = (id, qty) => {
     setItems((prev) =>
       prev.map((p) =>
@@ -110,7 +125,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const hideToast = () => setToastVisible(false);
 
-  // 🔢 contador total de unidades
+  // contador total de unidades
   const count = items.reduce((acc, item) => acc + item.qty, 0);
 
   return (

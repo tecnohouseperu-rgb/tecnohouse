@@ -11,6 +11,7 @@ type OrderItem = {
   qty: number;
   price: number;
   size?: string | null;
+  color?: string | null; // 👈 NUEVO
 };
 
 type OrderSummary = {
@@ -141,15 +142,14 @@ export default function SuccessPage() {
                   <p className="font-medium">{order.nombres}</p>
                   <p>{order.direccion}</p>
                   {order.referencia && (
-                    <p className="text-gray-500">
-                      Ref: {order.referencia}
-                    </p>
+                    <p className="text-gray-500">Ref: {order.referencia}</p>
                   )}
                   <p className="text-gray-600">
                     {order.distrito}, {order.provincia}, {order.departamento}
                   </p>
                   <p className="text-gray-600">
-                    Teléfono: <span className="font-medium">{order.telefono}</span>
+                    Teléfono:{" "}
+                    <span className="font-medium">{order.telefono}</span>
                   </p>
                   <p className="text-gray-600">
                     Correo: <span className="font-medium">{order.email}</span>
@@ -181,7 +181,7 @@ export default function SuccessPage() {
                 <ul className="space-y-2 max-h-64 overflow-auto pr-1 text-sm">
                   {order.items.map((it) => (
                     <li
-                      key={`${it.id}-${it.size ?? "std"}`}
+                      key={`${it.id}-${it.size ?? "std"}-${it.color ?? "nocolor"}`}
                       className="flex items-center justify-between gap-3 border-b last:border-b-0 border-dashed border-gray-200 pb-1"
                     >
                       <div className="min-w-0">
@@ -191,6 +191,7 @@ export default function SuccessPage() {
                         <p className="text-xs text-gray-500">
                           Cantidad: {it.qty}
                           {it.size ? ` · Talla ${it.size}` : ""}
+                          {it.color ? ` · Color ${it.color}` : ""} {/* 👈 aquí sale el color */}
                         </p>
                       </div>
                       <div className="text-sm font-semibold whitespace-nowrap">

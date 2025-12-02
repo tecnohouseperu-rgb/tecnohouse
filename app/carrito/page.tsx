@@ -153,7 +153,7 @@ export default function CartPage() {
 
                 return (
                   <li
-                    key={item.id}
+                    key={`${item.id}-${item.color ?? "default"}`} // 👈 distingue por color
                     className="flex gap-3 px-4 py-3 sm:gap-4 sm:px-5"
                   >
                     <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl bg-neutral-50 border">
@@ -171,7 +171,20 @@ export default function CartPage() {
                         <p className="text-sm font-medium text-neutral-900 line-clamp-2">
                           {item.name}
                         </p>
-                        <p className="text-xs text-neutral-500">Cantidad: {item.qty}</p>
+
+                        {/* 👇 mostramos el color si existe */}
+                        {item.color && (
+                          <p className="text-xs text-neutral-500 mt-0.5">
+                            Color:{" "}
+                            <span className="capitalize font-medium">
+                              {item.color}
+                            </span>
+                          </p>
+                        )}
+
+                        <p className="text-xs text-neutral-500 mt-0.5">
+                          Cantidad: {item.qty}
+                        </p>
                       </div>
 
                       <div className="flex items-center justify-between">

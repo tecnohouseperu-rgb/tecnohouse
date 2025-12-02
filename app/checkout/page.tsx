@@ -475,6 +475,7 @@ export default function Checkout() {
             qty: it.qty,
             price: it.price,
             size: it.size ?? null,
+            color: it.color ?? null,
           })),
         };
 
@@ -953,53 +954,61 @@ export default function Checkout() {
             <h2 className="text-xl font-bold">Resumen</h2>
 
             <ul className="space-y-3 max-h-[260px] overflow-y-auto pr-1">
-              {items.map((it, idx) => {
-                const price = it.price ?? 0;
-                const lineTotal = price * it.qty;
+  {items.map((it, idx) => {
+    const price = it.price ?? 0;
+    const lineTotal = price * it.qty;
 
-                return (
-                  <li
-                    key={`${it.id}-${(it as any).size ?? "std"}-${idx}`}
-                    className="flex items-center justify-between gap-3"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="relative h-9 w-9 rounded-md bg-gray-50 border border-black/10 flex-shrink-0 overflow-hidden">
-                        <Image
-                          src={it.mainImage || "/placeholder-product.png"}
-                          alt={(it as any).name || "Producto"}
-                          fill
-                          sizes="36px"
-                          className="object-contain p-1"
-                        />
-                      </div>
-                      <div className="min-w-0">
-                        <div
-                          className="text-sm font-medium"
-                          style={{
-                            display: "-webkit-box",
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: "vertical",
-                            overflow: "hidden",
-                          }}
-                        >
-                          {(it as any).name ?? ""}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          × {it.qty}
-                          {(it as any).size
-                            ? ` · Talla ${(it as any).size}`
-                            : ""}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-sm font-semibold whitespace-nowrap">
-                      S/ {lineTotal.toFixed(2)}
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
+    return (
+      <li
+        key={`${it.id}-${(it as any).size ?? "std"}-${it.color ?? "default"}-${idx}`}
+        className="flex items-center justify-between gap-3"
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="relative h-9 w-9 rounded-md bg-gray-50 border border-black/10 flex-shrink-0 overflow-hidden">
+            <Image
+              src={it.mainImage || "/placeholder-product.png"}
+              alt={(it as any).name || "Producto"}
+              fill
+              sizes="36px"
+              className="object-contain p-1"
+            />
+          </div>
+          <div className="min-w-0">
+            <div
+              className="text-sm font-medium"
+              style={{
+                display: "-webkit-box",
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+              }}
+            >
+              {(it as any).name ?? ""}
+            </div>
 
+            {/* 👇 Color elegido */}
+            {it.color && (
+              <div className="text-[11px] text-gray-500">
+                Color:{" "}
+                <span className="capitalize font-medium">
+                  {it.color}
+                </span>
+              </div>
+            )}
+
+            <div className="text-[11px] text-gray-500">
+              × {it.qty}
+              {(it as any).size ? ` · Talla ${(it as any).size}` : ""}
+            </div>
+          </div>
+        </div>
+        <div className="text-sm font-semibold whitespace-nowrap">
+          S/ {lineTotal.toFixed(2)}
+        </div>
+      </li>
+    );
+  })}
+</ul>
             {/* Cupón */}
             <div className="rounded-xl border border-gray-200 p-2">
               {!appliedCoupon ? (

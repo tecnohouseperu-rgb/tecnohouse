@@ -1,3 +1,4 @@
+// /api/order/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
@@ -87,6 +88,7 @@ export async function POST(req: NextRequest) {
         product_slug: item.slug ?? null,
         name: item.name ?? item.slug ?? "Producto",
         size: item.size ?? null,
+        color: item.color ?? null, // 👈 NUEVO: guardamos color
         qty: item.qty,
         price: item.price,
       }));

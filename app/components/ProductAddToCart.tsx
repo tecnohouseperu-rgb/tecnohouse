@@ -1,3 +1,4 @@
+// app/components/ProductAddToCart.tsx
 "use client";
 
 import { useState } from "react";
@@ -9,9 +10,16 @@ type Props = {
   name: string;
   price: number | null;
   mainImage: string | null;
+  color?: string | null; // 👈 IMPORTANTE
 };
 
-export function ProductAddToCart({ id, name, price, mainImage }: Props) {
+export function ProductAddToCart({
+  id,
+  name,
+  price,
+  mainImage,
+  color,
+}: Props) {
   const { addItem } = useCart();
   const router = useRouter();
   const [qty, setQty] = useState(1);
@@ -20,11 +28,29 @@ export function ProductAddToCart({ id, name, price, mainImage }: Props) {
   const plus = () => setQty((q) => (q < 99 ? q + 1 : 99));
 
   const handleAdd = () => {
-    addItem({ id, name, price, mainImage }, qty);
+    addItem(
+      {
+        id,
+        name,
+        price,
+        mainImage,
+        color: color ?? null, // 👈 se manda el color al carrito
+      },
+      qty
+    );
   };
 
   const handleBuyNow = () => {
-    addItem({ id, name, price, mainImage }, qty);
+    addItem(
+      {
+        id,
+        name,
+        price,
+        mainImage,
+        color: color ?? null, // 👈 igual aquí
+      },
+      qty
+    );
     router.push("/carrito");
   };
 
