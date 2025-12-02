@@ -5,6 +5,12 @@ import Image from "next/image";
 import { X } from "lucide-react";
 import { ProductAddToCart } from "../../components/ProductAddToCart";
 
+type ColorVariant = {
+  name: string;
+  hex?: string;
+  images?: string[];
+};
+
 type Product = {
   id: number;
   name: string;
@@ -18,12 +24,12 @@ type Product = {
   description: string | null;
   features: string | null;
   attributes: Record<string, any> | null;
+  color_variants: ColorVariant[] | null; // 👈 NUEVO
 };
 
 type Props = {
   product: Product;
   images: string[];
-  colors: string[];
   availabilityLabel: string;
   similar: Product[];
   fallbackImg: string;
@@ -32,17 +38,32 @@ type Props = {
 export default function ProductDetailClient({
   product,
   images,
-  colors,
   availabilityLabel,
   similar,
   fallbackImg,
 }: Props) {
+  const colorVariants = product.color_variants ?? [];
+
+  const [selectedColorName, setSelectedColorName] = useState<string | null>(
+    colorVariants[0]?.name ?? null
+  );
   const [selectedImgIndex, setSelectedImgIndex] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedColor, setSelectedColor] = useState<string | null>(
-    colors[0] ?? null
-  );
   const [featuresExpanded, setFeaturesExpanded] = useState(false);
+
+  const activeVariant =
+    colorVariants.find((cv) => cv.name === selectedColorName) ?? null;
+
+  // Imágenes que se usan según el color
+  const currentImages =
+    activeVariant?.images && activeVariant.images.length > 0
+      ? activeVariant.images
+      : images;
+
+  // Resetear índice cuando cambia de color
+  useEffect(() => {
+    setSelectedImgIndex(0);
+  }, [selectedColorName]);
 
   // Cerrar modal con ESC
   useEffect(() => {
@@ -54,7 +75,7 @@ export default function ProductDetailClient({
     return () => window.removeEventListener("keydown", handler);
   }, [isModalOpen]);
 
-  const mainImage = images[selectedImgIndex] ?? fallbackImg;
+  const mainImage = currentImages[selectedImgIndex] ?? fallbackImg;
 
   // features -> array de líneas
   const featureLines = (product.features ?? "")
@@ -100,7 +121,7 @@ export default function ProductDetailClient({
           <div className="grid gap-4 md:grid-cols-[88px,1fr]">
             {/* MINIATURAS (desktop) */}
             <div className="hidden md:flex flex-col gap-3">
-              {images.map((src, idx) => (
+              {currentImages.map((src, idx) => (
                 <button
                   key={idx}
                   type="button"
@@ -145,7 +166,7 @@ export default function ProductDetailClient({
 
               {/* MINIATURAS MOBILE (slider) */}
               <div className="flex gap-2 overflow-x-auto md:hidden">
-                {images.map((src, idx) => (
+                {currentImages.map((src, idx) => (
                   <button
                     key={idx}
                     type="button"
@@ -222,27 +243,33 @@ export default function ProductDetailClient({
             />
           </div>
 
-          {/* COLORES */}
-          {colors.length > 0 && (
+          {/* COLORES (usando color_variants) */}
+          {colorVariants.length > 0 && (
             <div className="rounded-2xl bg-white border border-neutral-200 p-4 shadow-sm">
               <h3 className="mb-1.5 text-sm font-semibold text-neutral-800">
                 Colores disponibles
               </h3>
               <div className="flex flex-wrap gap-2">
-                {colors.map((color) => {
-                  const isActive = selectedColor === color;
+                {colorVariants.map((cv) => {
+                  const isActive = selectedColorName === cv.name;
                   return (
                     <button
-                      key={color}
+                      key={cv.name}
                       type="button"
-                      onClick={() => setSelectedColor(color)}
-                      className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+                      onClick={() => setSelectedColorName(cv.name)}
+                      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition ${
                         isActive
                           ? "border-black bg-black text-white"
                           : "border-neutral-300 text-neutral-700 hover:border-black"
                       }`}
                     >
-                      {color}
+                      {cv.hex && (
+                        <span
+                          className="inline-block h-3 w-3 rounded-full border border-black/10"
+                          style={{ backgroundColor: cv.hex }}
+                        />
+                      )}
+                      <span>{cv.name}</span>
                     </button>
                   );
                 })}

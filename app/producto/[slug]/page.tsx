@@ -6,6 +6,12 @@ import ProductDetailClient from "./ProductDetailClient";
 
 const FALLBACK_IMG = "/placeholder-product.png";
 
+type ColorVariant = {
+  name: string;
+  hex?: string;
+  images?: string[];
+};
+
 type Product = {
   id: number;
   name: string;
@@ -21,20 +27,12 @@ type Product = {
   description: string | null;
   features: string | null;
   attributes: Record<string, any> | null;
+  color_variants: ColorVariant[] | null; // 👈 NUEVO (este comentario está fuera del select, aquí no hay problema)
 };
 
 type PageProps = {
   params: Promise<{ slug: string }>;
 };
-
-// "color:Negro" -> "Negro"
-function extractColorsFromTags(tags: string[] | null): string[] {
-  if (!tags) return [];
-  return tags
-    .filter((t) => t.toLowerCase().startsWith("color:"))
-    .map((t) => t.split(":")[1]?.trim())
-    .filter(Boolean) as string[];
-}
 
 function getAvailabilityLabel(value: string | null): string {
   if (!value) return "Disponibilidad no especificada";
@@ -79,7 +77,8 @@ export default async function ProductPage({ params }: PageProps) {
       availability,
       description,
       features,
-      attributes
+      attributes,
+      color_variants
     `
     )
     .eq("slug", slug)
@@ -100,7 +99,6 @@ export default async function ProductPage({ params }: PageProps) {
     .filter(Boolean)
     .map((u) => getImageSrc(u as string));
 
-  const colors = extractColorsFromTags(product.tags ?? []);
   const availabilityLabel = getAvailabilityLabel(product.availability);
 
   // Productos similares (misma subcategoría)
@@ -143,7 +141,6 @@ export default async function ProductPage({ params }: PageProps) {
         <ProductDetailClient
           product={product}
           images={images}
-          colors={colors}
           availabilityLabel={availabilityLabel}
           similar={similar}
           fallbackImg={FALLBACK_IMG}
