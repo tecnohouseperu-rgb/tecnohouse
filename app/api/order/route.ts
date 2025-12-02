@@ -54,14 +54,18 @@ export async function POST(req: NextRequest) {
         referencia,
         subtotal,
         envio,
+
+        // 👇 CUPÓN — SOLO UNA VEZ
         coupon_code: appliedCoupon ?? null,
         discount: discount ?? 0,
+
+        // Si finalTotal existe, lo usamos. Si no, usamos total.
         total: finalTotal ?? total,
+
         carrier,
         shipping_mode: shippingMode,
-        coupon_code: appliedCoupon,
         gateway: gateway || "mercadopago",
-        status: "pending_payment", // siempre empezamos así
+        status: "pending_payment",
       })
       .select("id")
       .single();
@@ -93,7 +97,6 @@ export async function POST(req: NextRequest) {
 
       if (itemsError) {
         console.error("Error insertando order_items:", itemsError);
-        // No rompemos el flujo, pero podrías loguearlo a parte
       }
     }
 
