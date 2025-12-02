@@ -193,6 +193,7 @@ export default function Checkout() {
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
   const [couponMsg, setCouponMsg] = useState<string | null>(null);
   const [showCoupon, setShowCoupon] = useState(false);
+  const [discount, setDiscount] = useState(0); // 💸 descuento calculado
 
   // ===== Método de envío
   const [shippingMode, setShippingMode] = useState<ShippingMode>("regular");
@@ -211,7 +212,11 @@ export default function Checkout() {
 
   // Si cambio a provincia y estaba express, regreso a regular
   useEffect(() => {
-    if (departamento && !isLimaCallao(departamento) && shippingMode === "express") {
+    if (
+      departamento &&
+      !isLimaCallao(departamento) &&
+      shippingMode === "express"
+    ) {
       setShippingMode("regular");
     }
   }, [departamento, shippingMode]);
@@ -280,6 +285,7 @@ export default function Checkout() {
       if (saved.shippingMode === "express" || saved.shippingMode === "regular") {
         setShippingMode(saved.shippingMode);
       }
+      setDiscount(saved.discount ?? 0);
     } catch {
       // ignore
     }
@@ -304,6 +310,7 @@ export default function Checkout() {
       agree,
       appliedCoupon,
       shippingMode,
+      discount,
     };
     try {
       localStorage.setItem("checkout-form", JSON.stringify(payload));
@@ -328,6 +335,7 @@ export default function Checkout() {
     agree,
     appliedCoupon,
     shippingMode,
+    discount,
   ]);
 
   // ===== validaciones
@@ -390,6 +398,8 @@ export default function Checkout() {
       return;
     }
 
+    const grandTotal = Math.max(0, subtotal - discount + envio);
+
     try {
       setLoading(true);
       const res = await fetch("/api/order", {
@@ -413,11 +423,13 @@ export default function Checkout() {
           referencia,
           subtotal,
           envio,
-          total: subtotal + envio,
+          discount,
+          total: grandTotal,
+          coupon_code: appliedCoupon,
+          appliedCoupon,
           carrier,
           shippingMode,
           gateway: "mercadopago",
-          appliedCoupon,
           cart: items.map((it) => ({
             slug: (it as any).slug,
             qty: it.qty,
@@ -444,7 +456,9 @@ export default function Checkout() {
           orderId: String(data.orderId),
           subtotal,
           envio,
-          total: subtotal + envio,
+          discount,
+          total: grandTotal,
+          coupon_code: appliedCoupon,
           nombres,
           telefono,
           email,
@@ -505,23 +519,52 @@ export default function Checkout() {
   }
 
   // ===== helpers cupón dentro del modal =====
-  const applyCoupon = () => {
-    const code = coupon.trim();
+  const applyCoupon = async () => {
+    const code = coupon.trim().toUpperCase();
     setCouponMsg(null);
+
     if (!code) {
       setCouponMsg("Ingresa un código.");
       return;
     }
-    // por ahora no hay cupones válidos
-    setAppliedCoupon(null);
-    setCoupon("");
-    setCouponMsg("Cupón inválido o expirado.");
+
+    try {
+      const res = await fetch("/api/validate-coupon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code,
+          subtotal,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!data.ok) {
+        setAppliedCoupon(null);
+        setDiscount(0);
+        setCouponMsg(data.message || "Cupón inválido o expirado.");
+        return;
+      }
+
+      setAppliedCoupon(data.coupon);
+      setDiscount(data.discount);
+      setCoupon(code);
+      setCouponMsg(
+        `Cupón ${data.coupon} aplicado (-S/ ${data.discount.toFixed(2)})`
+      );
+      setShowCoupon(false);
+    } catch (err) {
+      console.error("Error validando cupón:", err);
+      setCouponMsg("Error validando cupón. Inténtalo nuevamente.");
+    }
   };
 
   const removeCoupon = () => {
     setCoupon("");
     setCouponMsg(null);
     setAppliedCoupon(null);
+    setDiscount(0);
   };
 
   const shippingAreaLabel = departamento
@@ -530,7 +573,7 @@ export default function Checkout() {
       } · ${shippingMode === "express" ? "Express" : "Regular"}`
     : "";
 
-  const grandTotal = subtotal + envio;
+  const grandTotal = Math.max(0, subtotal - discount + envio);
 
   const canChooseShipping = Boolean(departamento);
 
@@ -1003,6 +1046,14 @@ export default function Checkout() {
                 <span>Subtotal</span>
                 <span>{`S/ ${subtotal.toFixed(2)}`}</span>
               </div>
+
+              {discount > 0 && (
+                <div className="flex justify-between text-green-700">
+                  <span>Descuento</span>
+                  <span>- S/ {discount.toFixed(2)}</span>
+                </div>
+              )}
+
               <div className="flex justify-between">
                 <span>
                   Envío
