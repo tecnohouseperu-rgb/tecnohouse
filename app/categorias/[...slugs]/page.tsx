@@ -1,8 +1,7 @@
 // app/categorias/[...slug]/page.tsx
 
 import { createClient } from "@/utils/supabase/server";
-import Image from "next/image";
-import Link from "next/link";
+import CategoryClient from "./CategoryClient";
 
 type Product = {
   id: number;
@@ -22,21 +21,6 @@ type PageProps = {
 };
 
 const FALLBACK_IMG = "/placeholder-product.png";
-
-// src siempre válido
-function getProductImageSrc(url: string | null): string {
-  if (!url) return FALLBACK_IMG;
-  const trimmed = url.trim();
-  if (!trimmed) return FALLBACK_IMG;
-
-  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
-    return trimmed;
-  }
-  if (trimmed.startsWith("/")) {
-    return trimmed;
-  }
-  return FALLBACK_IMG;
-}
 
 export default async function CategoryPage({ params }: PageProps) {
   const supabase = createClient();
@@ -121,72 +105,8 @@ export default async function CategoryPage({ params }: PageProps) {
         </span>
       </header>
 
-      {/* GRID DE PRODUCTOS (SIN FILTROS) */}
-      {products.length === 0 ? (
-        <p className="text-sm text-neutral-500">
-          Aún no hay productos configurados para esta categoría.
-        </p>
-      ) : (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-          {products.map((p) => (
-            <Link
-              key={p.id}
-              href={`/producto/${p.slug}`}
-              className="group flex h-full flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-            >
-              {/* IMAGEN */}
-              <div className="relative w-full bg-neutral-50 aspect-square">
-                <Image
-                  src={getProductImageSrc(p.main_image_url)}
-                  alt={p.name}
-                  fill
-                  sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 20vw"
-                  className="object-contain p-3 transition group-hover:scale-[1.02]"
-                />
-              </div>
-
-              {/* CONTENIDO */}
-              <div className="flex flex-1 flex-col gap-1 p-2.5">
-                {p.brand && (
-                  <p className="text-[10px] font-medium uppercase tracking-wide text-neutral-500">
-                    {p.brand}
-                  </p>
-                )}
-
-                <p className="line-clamp-2 text-[13px] font-medium text-neutral-800 group-hover:text-blue-600">
-                  {p.name}
-                </p>
-
-                {/* Precio */}
-                <div className="mt-1 flex items-baseline gap-1.5">
-                  {p.old_price && (
-                    <p className="text-[11px] text-neutral-400 line-through">
-                      S/ {p.old_price}
-                    </p>
-                  )}
-                  <p className="text-base font-semibold text-red-600">
-                    S/ {p.price}
-                  </p>
-                </div>
-
-                {/* BADGES */}
-                <div className="mt-1 flex flex-wrap gap-1">
-                  {p.tags?.includes("tienda-web") && (
-                    <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-medium text-green-700">
-                      Tienda y web
-                    </span>
-                  )}
-                  {p.tags?.includes("solo-web") && (
-                    <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-medium text-blue-700">
-                      Solo web
-                    </span>
-                  )}
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      )}
+      {/* GRID + PAGINACIÓN (cliente) */}
+      <CategoryClient products={products} fallbackImg={FALLBACK_IMG} />
     </div>
   );
 }
