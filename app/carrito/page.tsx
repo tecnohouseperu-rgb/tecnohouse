@@ -75,7 +75,8 @@ export default function CartPage() {
               Aún no has agregado productos. Explora nuestras categorías de{" "}
               <span className="font-semibold text-white">audio</span>,{" "}
               <span className="font-semibold text-white">gamer</span> y{" "}
-              <span className="font-semibold text-white">navidad</span> y arma tu próximo pedido.
+              <span className="font-semibold text-white">navidad</span> y arma
+              tu próximo pedido.
             </p>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-center">
@@ -126,7 +127,9 @@ export default function CartPage() {
           </h1>
           <p className="text-xs sm:text-sm text-neutral-500">
             {itemCount} producto{itemCount === 1 ? "" : "s"} ·{" "}
-            <span className="font-medium text-neutral-800">{subtotalLabel}</span>
+            <span className="font-medium text-neutral-800">
+              {subtotalLabel}
+            </span>
           </p>
         </header>
 
@@ -153,7 +156,7 @@ export default function CartPage() {
 
                 return (
                   <li
-                    key={`${item.id}-${item.color ?? "default"}`} // 👈 distingue por color
+                    key={`${item.id}-${item.color ?? "default"}-${item.size ?? "ns"}`}
                     className="flex gap-3 px-4 py-3 sm:gap-4 sm:px-5"
                   >
                     <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl bg-neutral-50 border">
@@ -172,15 +175,23 @@ export default function CartPage() {
                           {item.name}
                         </p>
 
-                        {/* 👇 mostramos el color si existe */}
-                        {item.color && (
-                          <p className="text-xs text-neutral-500 mt-0.5">
-                            Color:{" "}
-                            <span className="capitalize font-medium">
-                              {item.color}
+                        {/* Color y tamaño si existen */}
+                        <div className="mt-0.5 flex flex-wrap gap-2 text-xs text-neutral-500">
+                          {item.color && (
+                            <span>
+                              Color:{" "}
+                              <span className="capitalize font-medium">
+                                {item.color}
+                              </span>
                             </span>
-                          </p>
-                        )}
+                          )}
+                          {item.size && (
+                            <span>
+                              Tamaño:{" "}
+                              <span className="font-medium">{item.size}</span>
+                            </span>
+                          )}
+                        </div>
 
                         <p className="text-xs text-neutral-500 mt-0.5">
                           Cantidad: {item.qty}
@@ -215,7 +226,9 @@ export default function CartPage() {
             <div className="space-y-1 text-sm">
               <div className="flex justify-between">
                 <span className="text-neutral-600">Subtotal</span>
-                <span className="font-medium text-neutral-900">{subtotalLabel}</span>
+                <span className="font-medium text-neutral-900">
+                  {subtotalLabel}
+                </span>
               </div>
               <div className="flex justify-between text-xs text-neutral-500">
                 <span>Costo de envío</span>

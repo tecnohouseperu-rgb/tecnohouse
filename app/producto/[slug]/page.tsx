@@ -12,6 +12,13 @@ type ColorVariant = {
   images?: string[];
 };
 
+type SizeVariant = {
+  name: string;
+  code?: string;
+  price?: number;
+  images?: string[];
+};
+
 type Product = {
   id: number;
   name: string;
@@ -27,7 +34,8 @@ type Product = {
   description: string | null;
   features: string | null;
   attributes: Record<string, any> | null;
-  color_variants: ColorVariant[] | null; // 👈 NUEVO (este comentario está fuera del select, aquí no hay problema)
+  color_variants: ColorVariant[] | null;
+  size_variants: SizeVariant[] | null;
 };
 
 type PageProps = {
@@ -78,7 +86,8 @@ export default async function ProductPage({ params }: PageProps) {
       description,
       features,
       attributes,
-      color_variants
+      color_variants,
+      size_variants
     `
     )
     .eq("slug", slug)

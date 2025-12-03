@@ -14,7 +14,8 @@ type CartItem = {
   price: number | null;
   mainImage: string | null;
   qty: number;
-  color?: string | null; // 👈 NUEVO
+  color?: string | null;
+  size?: string | null; // 👈 NUEVO
 };
 
 type CartContextType = {
@@ -26,6 +27,7 @@ type CartContextType = {
       price: number | null;
       mainImage: string | null;
       color?: string | null;
+      size?: string | null; // 👈 NUEVO
     },
     qty?: number
   ) => void;
@@ -76,16 +78,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const addItem: CartContextType["addItem"] = (item, qty = 1) => {
     setItems((prev) => {
-      // 👇 ahora diferenciamos por id + color
+      // 👇 ahora diferenciamos por id + color + size
       const existing = prev.find(
-        (p) => p.id === item.id && p.color === item.color
+        (p) =>
+          p.id === item.id &&
+          p.color === item.color &&
+          p.size === item.size
       );
 
       let newItems: CartItem[];
 
       if (existing) {
         newItems = prev.map((p) =>
-          p.id === item.id && p.color === item.color
+          p.id === item.id &&
+          p.color === item.color &&
+          p.size === item.size
             ? { ...p, qty: p.qty + qty }
             : p
         );
@@ -95,7 +102,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
       const added =
         newItems.find(
-          (p) => p.id === item.id && p.color === item.color
+          (p) =>
+            p.id === item.id &&
+            p.color === item.color &&
+            p.size === item.size
         ) ?? { ...item, qty };
 
       setLastAdded(added);
@@ -105,8 +115,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const removeItem = (id: number) => {
-    // ⚠️ sigue eliminando por id; si algún día tienes muchos colores del mismo id
-    // y quieres borrar solo uno, luego refinamos esto para usar un identificador único
+    // ⚠️ sigue eliminando por id; si algún día quieres borrar por color/size
+    // afinamos la firma del método para usar un identificador más específico
     setItems((prev) => prev.filter((p) => p.id !== id));
   };
 

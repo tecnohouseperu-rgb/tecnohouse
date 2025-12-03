@@ -10,7 +10,8 @@ type Props = {
   name: string;
   price: number | null;
   mainImage: string | null;
-  color?: string | null; // 👈 IMPORTANTE
+  color?: string | null; // opcional
+  size?: string | null;  // 👈 NUEVO opcional
 };
 
 export function ProductAddToCart({
@@ -19,6 +20,7 @@ export function ProductAddToCart({
   price,
   mainImage,
   color,
+  size,
 }: Props) {
   const { addItem } = useCart();
   const router = useRouter();
@@ -34,7 +36,8 @@ export function ProductAddToCart({
         name,
         price,
         mainImage,
-        color: color ?? null, // 👈 se manda el color al carrito
+        color: color ?? null, // puede ser null sin problema
+        size: size ?? null,   // 👈 mandamos también el tamaño
       },
       qty
     );
@@ -47,7 +50,8 @@ export function ProductAddToCart({
         name,
         price,
         mainImage,
-        color: color ?? null, // 👈 igual aquí
+        color: color ?? null,
+        size: size ?? null,   // 👈 igual aquí
       },
       qty
     );
