@@ -13,10 +13,10 @@ type ColorVariant = {
 };
 
 type SizeVariant = {
-  name: string;      // "1.2 m"
-  code?: string;     // "120"
-  price?: number;    // precio específico
-  images?: string[]; // fotos específicas
+  name: string;
+  code?: string;
+  price?: number;
+  images?: string[];
 };
 
 type Product = {
@@ -44,6 +44,38 @@ type Props = {
   fallbackImg: string;
 };
 
+// Tallas base
+const ADULT_SIZES = ["S", "M", "L", "XL", "XXL"];
+const KID_SIZES = ["2", "4", "6", "8", "10", "12", "14", "16"];
+
+type FamilySizeState = {
+  adults: (string | null)[];
+  kids: (string | null)[];
+};
+
+function getFamilyConfig(code?: string | null): { adults: number; kids: number } | null {
+  if (!code) return null;
+
+  switch (code) {
+    case "adult_unit":
+      return { adults: 1, kids: 0 };
+    case "adult_pair":
+      return { adults: 2, kids: 0 };
+    case "kid_unit":
+      return { adults: 0, kids: 1 };
+    case "kid_pair":
+      return { adults: 0, kids: 2 };
+    case "pack_2a1n":
+      return { adults: 2, kids: 1 };
+    case "pack_2a2n":
+      return { adults: 2, kids: 2 };
+    case "pack_1a1n":
+      return { adults: 1, kids: 1 };
+    default:
+      return null;
+  }
+}
+
 export default function ProductDetailClient({
   product,
   images,
@@ -51,7 +83,6 @@ export default function ProductDetailClient({
   similar,
   fallbackImg,
 }: Props) {
-  // Normalizamos a arrays siempre
   const colorVariants: ColorVariant[] = Array.isArray(product.color_variants)
     ? product.color_variants
     : [];
@@ -59,6 +90,9 @@ export default function ProductDetailClient({
   const sizeVariants: SizeVariant[] = Array.isArray(product.size_variants)
     ? product.size_variants
     : [];
+
+  // 👉 Detectamos si es un producto de pijamas familiares
+  const isFamilyPajama = product.slug.toLowerCase().includes("pijama");
 
   const [selectedColorName, setSelectedColorName] = useState<string | null>(
     colorVariants[0]?.name ?? null
@@ -68,9 +102,22 @@ export default function ProductDetailClient({
     sizeVariants[0]?.name ?? null
   );
 
+  // 👉 Estado de tallas por integrante (adultos / niños)
+  const [familySizes, setFamilySizes] = useState<FamilySizeState>({
+    adults: [],
+    kids: [],
+  });
+
   const [selectedImgIndex, setSelectedImgIndex] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [featuresExpanded, setFeaturesExpanded] = useState(false);
+
+  // Guía de tallas (solo ropa/pijamas)
+  const [showGuide, setShowGuide] = useState(false);
+  const [guideTab, setGuideTab] = useState<"adult" | "kid">("adult");
+
+  // Mostrar guía solo si es pijama o tiene tag "tallas"
+  const showSizeGuide = isFamilyPajama || product.tags?.includes("tallas");
 
   const isSizeBased = sizeVariants.length > 0;
 
@@ -81,7 +128,27 @@ export default function ProductDetailClient({
     sizeVariants.find((sv) => sv.name === selectedSizeName) ??
     (sizeVariants[0] ?? null);
 
-  // Imágenes: primero tamaño, luego color, luego base
+  // ========= CONFIGURAMOS CUÁNTOS ADULTOS / NIÑOS TIENE EL PACK =========
+  useEffect(() => {
+    if (!isFamilyPajama || !isSizeBased) {
+      setFamilySizes({ adults: [], kids: [] });
+      return;
+    }
+
+    const cfg = getFamilyConfig(activeSize?.code ?? null);
+    if (!cfg) {
+      setFamilySizes({ adults: [], kids: [] });
+      return;
+    }
+
+    setFamilySizes((prev) => {
+      const newAdults = Array.from({ length: cfg.adults }, (_, i) => prev.adults[i] ?? null);
+      const newKids = Array.from({ length: cfg.kids }, (_, i) => prev.kids[i] ?? null);
+      return { adults: newAdults, kids: newKids };
+    });
+  }, [isFamilyPajama, isSizeBased, activeSize?.code]);
+
+  // ========= IMÁGENES =========
   const currentImages =
     (isSizeBased &&
       activeSize?.images &&
@@ -91,12 +158,10 @@ export default function ProductDetailClient({
       ? activeVariant.images
       : images);
 
-  // Resetear índice cuando cambia color o tamaño
   useEffect(() => {
     setSelectedImgIndex(0);
   }, [selectedColorName, selectedSizeName]);
 
-  // Cerrar modal con ESC
   useEffect(() => {
     if (!isModalOpen) return;
     const handler = (e: KeyboardEvent) => {
@@ -108,13 +173,38 @@ export default function ProductDetailClient({
 
   const mainImage = currentImages[selectedImgIndex] ?? fallbackImg;
 
-  // Precio según tamaño (si trae) o precio base del producto
   const displayPrice =
     isSizeBased && activeSize?.price != null
       ? activeSize.price
       : product.price;
 
-  // features -> array de líneas
+  // ========= TEXTO QUE VA AL CARRITO EN EL CAMPO size =========
+  const sizeLabelForCart: string | null = (() => {
+    if (!isSizeBased) return null;
+
+    const baseName = activeSize?.name ?? selectedSizeName ?? "";
+    if (!baseName) return null;
+
+    if (!isFamilyPajama) {
+      // Árboles / otros productos
+      return baseName;
+    }
+
+    const parts: string[] = [];
+
+    familySizes.adults.forEach((sz, idx) => {
+      if (sz) parts.push(`Adulto ${idx + 1}: ${sz}`);
+    });
+    familySizes.kids.forEach((sz, idx) => {
+      if (sz) parts.push(`Niño ${idx + 1}: ${sz}`);
+    });
+
+    if (parts.length === 0) return baseName;
+
+    return `${baseName} - ${parts.join(", ")}`;
+  })();
+
+  // ========= FEATURES =========
   const featureLines = (product.features ?? "")
     .split("\n")
     .map((l) => l.trim())
@@ -122,6 +212,23 @@ export default function ProductDetailClient({
 
   const featurePreview = featuresExpanded ? featureLines : featureLines.slice(0, 5);
   const hasMoreFeatures = featureLines.length > 5;
+
+  // ========= HANDLERS TALLAS FAMILIA =========
+  const handleAdultSizeClick = (index: number, size: string) => {
+    setFamilySizes((prev) => {
+      const nextAdults = [...prev.adults];
+      nextAdults[index] = size;
+      return { ...prev, adults: nextAdults };
+    });
+  };
+
+  const handleKidSizeClick = (index: number, size: string) => {
+    setFamilySizes((prev) => {
+      const nextKids = [...prev.kids];
+      nextKids[index] = size;
+      return { ...prev, kids: nextKids };
+    });
+  };
 
   return (
     <>
@@ -277,21 +384,21 @@ export default function ProductDetailClient({
               name={product.name}
               price={displayPrice ?? 0}
               mainImage={currentImages[0] ?? product.main_image_url ?? fallbackImg}
-              size={isSizeBased ? selectedSizeName : null}
+              size={sizeLabelForCart}
               color={isSizeBased ? null : selectedColorName ?? null}
             />
           </div>
 
-          {/* TAMAÑOS (árboles) */}
+          {/* OPCIONES / PACKS */}
           {sizeVariants.length > 0 && (
             <div className="rounded-2xl bg-white border border-neutral-200 p-4 shadow-sm">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-semibold text-neutral-800">
-                  Tamaños disponibles
+                  {isFamilyPajama ? "Opciones de compra" : "Tamaños disponibles"}
                 </h3>
                 {selectedSizeName && (
                   <p className="text-xs text-neutral-500">
-                    Tamaño seleccionado:{" "}
+                    Opción seleccionada:{" "}
                     <span className="font-medium text-neutral-800">
                       {selectedSizeName}
                     </span>
@@ -306,7 +413,10 @@ export default function ProductDetailClient({
                     <button
                       key={sv.name}
                       type="button"
-                      onClick={() => setSelectedSizeName(sv.name)}
+                      onClick={() => {
+                        setSelectedSizeName(sv.name);
+                        // cuando cambias de pack, se recalcula familySizes en el useEffect
+                      }}
                       className={`rounded-full border px-3 py-1.5 text-xs font-medium transition
                         ${
                           isActive
@@ -319,10 +429,95 @@ export default function ProductDetailClient({
                   );
                 })}
               </div>
+
+              {/* Selector de tallas por integrante SOLO para pijamas */}
+              {isFamilyPajama && (familySizes.adults.length > 0 || familySizes.kids.length > 0) && (
+                <div className="mt-4 space-y-3">
+                  <p className="text-xs font-semibold text-neutral-700">
+                    Selecciona la talla para cada integrante
+                  </p>
+
+                  {/* Adultos */}
+                  {familySizes.adults.map((current, idx) => (
+                    <div key={`adult-${idx}`} className="space-y-1">
+                      <p className="text-[11px] font-medium text-neutral-700">
+                        Adulto {idx + 1}
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {ADULT_SIZES.map((t) => {
+                          const active = current === t;
+                          return (
+                            <button
+                              key={t}
+                              type="button"
+                              onClick={() => handleAdultSizeClick(idx, t)}
+                              className={`rounded-full border px-3 py-1 text-[11px] font-medium transition
+                                ${
+                                  active
+                                    ? "border-black bg-neutral-900 text-white shadow-sm"
+                                    : "border-neutral-300 bg-white text-neutral-700 hover:border-neutral-500"
+                                }`}
+                            >
+                              {t}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Niños */}
+                  {familySizes.kids.map((current, idx) => (
+                    <div key={`kid-${idx}`} className="space-y-1">
+                      <p className="text-[11px] font-medium text-neutral-700">
+                        Niño {idx + 1}
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {KID_SIZES.map((t) => {
+                          const active = current === t;
+                          return (
+                            <button
+                              key={t}
+                              type="button"
+                              onClick={() => handleKidSizeClick(idx, t)}
+                              className={`rounded-full border px-3 py-1 text-[11px] font-medium transition
+                                ${
+                                  active
+                                    ? "border-black bg-neutral-900 text-white shadow-sm"
+                                    : "border-neutral-300 bg-white text-neutral-700 hover:border-neutral-500"
+                                }`}
+                            >
+                              {t}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+
+                  <p className="mt-1 text-[11px] text-neutral-500">
+                    * Si necesitas combinaciones especiales, también puedes
+                    detallarlas en comentarios o por WhatsApp luego del pedido.
+                  </p>
+
+                  {showSizeGuide && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setGuideTab("adult");
+                        setShowGuide(true);
+                      }}
+                      className="mt-2 text-[11px] font-medium text-blue-600 hover:underline"
+                    >
+                      Ver guía de tallas
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
-          {/* COLORES (solo si no hay tamaños) */}
+          {/* COLORES (solo si no hay variantes de tamaño/pack) */}
           {sizeVariants.length === 0 && colorVariants.length > 0 && (
             <div className="rounded-2xl bg-white border border-neutral-200 p-4 shadow-sm">
               <div className="flex items-center justify-between mb-3">
@@ -449,6 +644,163 @@ export default function ProductDetailClient({
           </div>
         </section>
       )}
+
+     {/* MODAL GUÍA DE TALLAS (Premium) */}
+{showGuide && (
+  <div
+    className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4 animate-fadeIn"
+    onClick={() => setShowGuide(false)}
+  >
+    <div
+      className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden animate-scaleIn"
+      onClick={(e) => e.stopPropagation()}
+    >
+      {/* Header */}
+      <div className="sticky top-0 bg-white border-b border-neutral-100 px-6 py-4 flex items-center justify-between">
+        <h3 className="text-lg font-semibold text-neutral-900">
+          Guía de tallas
+        </h3>
+        <button
+          onClick={() => setShowGuide(false)}
+          className="h-9 w-9 flex items-center justify-center rounded-full bg-neutral-100 hover:bg-neutral-200 transition"
+        >
+          <X className="h-5 w-5 text-neutral-700" />
+        </button>
+      </div>
+
+      {/* Tabs */}
+      <div className="px-6 py-3 flex gap-2">
+        <button
+          onClick={() => setGuideTab("adult")}
+          className={`px-4 py-2 text-sm font-medium rounded-full transition ${
+            guideTab === "adult"
+              ? "bg-neutral-900 text-white shadow-md"
+              : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+          }`}
+        >
+          Adultos
+        </button>
+        <button
+          onClick={() => setGuideTab("kid")}
+          className={`px-4 py-2 text-sm font-medium rounded-full transition ${
+            guideTab === "kid"
+              ? "bg-neutral-900 text-white shadow-md"
+              : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+          }`}
+        >
+          Niños
+        </button>
+      </div>
+
+      {/* Tabla adultos */}
+      {guideTab === "adult" && (
+        <div className="px-6 pb-6 space-y-3">
+          <p className="text-xs text-neutral-500">
+            Las medidas pueden variar ligeramente según el fabricante.
+          </p>
+
+          <table className="w-full border-collapse text-sm rounded-xl overflow-hidden shadow-sm">
+            <thead className="bg-neutral-50 text-neutral-700">
+              <tr>
+                <th className="border border-neutral-100 px-3 py-2 font-semibold">
+                  Talla
+                </th>
+                <th className="border border-neutral-100 px-3 py-2 font-semibold">
+                  Pecho (cm)
+                </th>
+                <th className="border border-neutral-100 px-3 py-2 font-semibold">
+                  Cintura (cm)
+                </th>
+                <th className="border border-neutral-100 px-3 py-2 font-semibold">
+                  Altura (cm)
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { t: "S", p: "82–88", c: "72–78", h: "155–165" },
+                { t: "M", p: "88–94", c: "78–84", h: "165–172" },
+                { t: "L", p: "94–100", c: "84–90", h: "172–178" },
+                { t: "XL", p: "100–106", c: "90–96", h: "178–184" },
+                { t: "XXL", p: "106–112", c: "96–102", h: "184–190" },
+              ].map((row, i) => (
+                <tr
+                  key={row.t}
+                  className={i % 2 === 0 ? "bg-white" : "bg-neutral-50/60"}
+                >
+                  <td className="border border-neutral-100 px-3 py-2 font-medium">
+                    {row.t}
+                  </td>
+                  <td className="border border-neutral-100 px-3 py-2">
+                    {row.p}
+                  </td>
+                  <td className="border border-neutral-100 px-3 py-2">
+                    {row.c}
+                  </td>
+                  <td className="border border-neutral-100 px-3 py-2">
+                    {row.h}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Tabla niños */}
+      {guideTab === "kid" && (
+        <div className="px-6 pb-6 space-y-3">
+          <p className="text-xs text-neutral-500">
+            Guía referencial según la edad y estatura.
+          </p>
+
+          <table className="w-full border-collapse text-sm rounded-xl overflow-hidden shadow-sm">
+            <thead className="bg-neutral-50 text-neutral-700">
+              <tr>
+                <th className="border border-neutral-100 px-3 py-2 font-semibold">
+                  Talla
+                </th>
+                <th className="border border-neutral-100 px-3 py-2 font-semibold">
+                  Edad aprox.
+                </th>
+                <th className="border border-neutral-100 px-3 py-2 font-semibold">
+                  Altura (cm)
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { t: "2", e: "2 años", h: "86–92" },
+                { t: "4", e: "3–4 años", h: "98–104" },
+                { t: "6", e: "5–6 años", h: "110–116" },
+                { t: "8", e: "7–8 años", h: "122–128" },
+                { t: "10", e: "9–10 años", h: "134–140" },
+                { t: "12", e: "11–12 años", h: "146–152" },
+                { t: "14", e: "13–14 años", h: "158–164" },
+                { t: "16", e: "15–16 años", h: "170–172" },
+              ].map((row, i) => (
+                <tr
+                  key={row.t}
+                  className={i % 2 === 0 ? "bg-white" : "bg-neutral-50/60"}
+                >
+                  <td className="border border-neutral-100 px-3 py-2 font-medium">
+                    {row.t}
+                  </td>
+                  <td className="border border-neutral-100 px-3 py-2">
+                    {row.e}
+                  </td>
+                  <td className="border border-neutral-100 px-3 py-2">
+                    {row.h}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  </div>
+)}
 
       {/* MODAL DE IMAGEN AMPLIADA */}
       {isModalOpen && (
