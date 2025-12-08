@@ -729,6 +729,20 @@ export default function ProductDetailClient({
                     </p>
                   </div>
                 )}
+
+              {/* Guía de tallas para ropa / pijamas simples (solo tallas, sin packs) */}
+              {showSizeGuide && !isOldFamilyPack && !isFreeComboPajama && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setGuideTab("adult");
+                    setShowGuide(true);
+                  }}
+                  className="mt-3 text-[11px] font-medium text-blue-600 hover:underline"
+                >
+                  Ver guía de tallas
+                </button>
+              )}
             </div>
           )}
 
