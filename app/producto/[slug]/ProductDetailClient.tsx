@@ -2,9 +2,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import { X, Check } from "lucide-react";
 import { ProductAddToCart } from "../../components/ProductAddToCart";
+import { ProductImage } from "@/app/components/ProductImage";
 
 type ColorVariant = {
   name: string;
@@ -234,9 +234,7 @@ export default function ProductDetailClient({
   const mainImage = currentImages[selectedImgIndex] ?? fallbackImg;
 
   const displayPrice =
-    isSizeBased && activeSize?.price != null
-      ? activeSize.price
-      : product.price;
+    isSizeBased && activeSize?.price != null ? activeSize.price : product.price;
 
   // ========= TEXTO QUE VA AL CARRITO EN EL CAMPO size =========
   const sizeLabelForCart: string | null = (() => {
@@ -284,9 +282,7 @@ export default function ProductDetailClient({
     .map((l) => l.trim())
     .filter(Boolean);
 
-  const featurePreview = featuresExpanded
-    ? featureLines
-    : featureLines.slice(0, 5);
+  const featurePreview = featuresExpanded ? featureLines : featureLines.slice(0, 5);
   const hasMoreFeatures = featureLines.length > 5;
 
   // ========= HANDLERS TALLAS =========
@@ -382,7 +378,7 @@ export default function ProductDetailClient({
                       : "border-neutral-200 hover:border-black"
                   }`}
                 >
-                  <Image
+                  <ProductImage
                     src={src}
                     alt={`${product.name} ${idx + 1}`}
                     fill
@@ -399,13 +395,14 @@ export default function ProductDetailClient({
                 onClick={() => setIsModalOpen(true)}
                 className="relative w-full aspect-[4/5] max-h-[430px] overflow-hidden rounded-2xl bg-neutral-50 group"
               >
-                <Image
+                <ProductImage
                   src={mainImage}
                   alt={product.name}
                   fill
                   sizes="(max-width: 768px) 100vw, 50vw"
                   className="object-contain p-4 md:p-6"
                 />
+
                 <span className="pointer-events-none absolute bottom-3 right-3 rounded-full bg-black/70 px-3 py-1 text-[10px] font-medium text-white opacity-0 shadow-sm transition group-hover:opacity-100">
                   Click para ampliar
                 </span>
@@ -427,7 +424,7 @@ export default function ProductDetailClient({
                         : "border-neutral-200 hover:border-black"
                     }`}
                   >
-                    <Image
+                    <ProductImage
                       src={src}
                       alt={`${product.name} ${idx + 1}`}
                       fill
@@ -486,12 +483,8 @@ export default function ProductDetailClient({
               id={product.id}
               name={product.name}
               price={displayPrice ?? 0}
-              mainImage={
-                currentImages[0] ?? product.main_image_url ?? fallbackImg
-              }
+              mainImage={currentImages[0] ?? product.main_image_url ?? fallbackImg}
               size={sizeLabelForCart}
-              // 👉 ahora siempre mandamos el color si existe,
-              // incluso cuando hay size_variants
               color={selectedColorName ?? null}
             />
           </div>
@@ -520,9 +513,7 @@ export default function ProductDetailClient({
                     <button
                       key={sv.name}
                       type="button"
-                      onClick={() => {
-                        setSelectedSizeName(sv.name);
-                      }}
+                      onClick={() => setSelectedSizeName(sv.name)}
                       className={`rounded-full border px-3 py-1.5 text-xs font-medium transition
                         ${
                           isActive
@@ -536,201 +527,184 @@ export default function ProductDetailClient({
                 })}
               </div>
 
-              {/* Pijamas antiguas: adultos / niños fijos */}
-              {isFamilyPajama &&
-                isOldFamilyPack &&
-                hasOldPackMembers && (
-                  <div className="mt-4 space-y-3">
-                    <p className="text-xs font-semibold text-neutral-700">
-                      Selecciona la talla para cada integrante
-                    </p>
+              {/* Pijamas antiguas */}
+              {isFamilyPajama && isOldFamilyPack && hasOldPackMembers && (
+                <div className="mt-4 space-y-3">
+                  <p className="text-xs font-semibold text-neutral-700">
+                    Selecciona la talla para cada integrante
+                  </p>
 
-                    {/* Adultos */}
-                    {familySizes.adults.map((current, idx) => (
-                      <div key={`adult-${idx}`} className="space-y-1">
-                        <p className="text-[11px] font-medium text-neutral-700">
-                          Adulto {idx + 1}
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {ADULT_SIZES.map((t) => {
-                            const active = current === t;
-                            return (
-                              <button
-                                key={t}
-                                type="button"
-                                onClick={() => handleAdultSizeClick(idx, t)}
-                                className={`rounded-full border px-3 py-1 text-[11px] font-medium transition
-                                  ${
-                                    active
-                                      ? "border-black bg-neutral-900 text-white shadow-sm"
-                                      : "border-neutral-300 bg-white text-neutral-700 hover:border-neutral-500"
-                                  }`}
-                              >
-                                {t}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    ))}
-
-                    {/* Niños */}
-                    {familySizes.kids.map((current, idx) => (
-                      <div key={`kid-${idx}`} className="space-y-1">
-                        <p className="text-[11px] font-medium text-neutral-700">
-                          Niño {idx + 1}
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {KID_SIZES.map((t) => {
-                            const active = current === t;
-                            return (
-                              <button
-                                key={t}
-                                type="button"
-                                onClick={() => handleKidSizeClick(idx, t)}
-                                className={`rounded-full border px-3 py-1 text-[11px] font-medium transition
-                                  ${
-                                    active
-                                      ? "border-black bg-neutral-900 text-white shadow-sm"
-                                      : "border-neutral-300 bg-white text-neutral-700 hover:border-neutral-500"
-                                  }`}
-                              >
-                                {t}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    ))}
-
-                    {showSizeGuide && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setGuideTab("adult");
-                          setShowGuide(true);
-                        }}
-                        className="mt-2 text-[11px] font-medium text-blue-600 hover:underline"
-                      >
-                        Ver guía de tallas
-                      </button>
-                    )}
-
-                    <p className="mt-1 text-[11px] text-neutral-500">
-                      * Si necesitas combinaciones especiales, también puedes
-                      detallarlas en comentarios o por WhatsApp luego del
-                      pedido.
-                    </p>
-                  </div>
-                )}
-
-              {/* Pijamas nuevas: packs libres (unidad / pack x2 / pack x3) */}
-              {isFamilyPajama &&
-                isFreeComboPajama &&
-                hasComboMembers && (
-                  <div className="mt-4 space-y-3">
-                    <p className="text-xs font-semibold text-neutral-700">
-                      Selecciona si cada prenda es adulto o niño y su talla
-                    </p>
-
-                    {comboSizes.map((current, idx) => {
-                      const pieceType = pieceTypes[idx];
-
-                      return (
-                        <div key={`combo-${idx}`} className="space-y-2">
-                          <p className="text-[11px] font-medium text-neutral-700">
-                            Prenda {idx + 1}
-                          </p>
-
-                          {/* Selector Adulto / Niño */}
-                          <div className="flex gap-2">
+                  {/* Adultos */}
+                  {familySizes.adults.map((current, idx) => (
+                    <div key={`adult-${idx}`} className="space-y-1">
+                      <p className="text-[11px] font-medium text-neutral-700">
+                        Adulto {idx + 1}
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {ADULT_SIZES.map((t) => {
+                          const active = current === t;
+                          return (
                             <button
+                              key={t}
                               type="button"
-                              onClick={() =>
-                                handlePieceTypeSelect(idx, "adult")
-                              }
-                              className={`px-3 py-1.5 rounded-full text-[11px] border transition ${
-                                pieceType === "adult"
-                                  ? "bg-neutral-900 text-white border-black"
-                                  : "bg-white border-neutral-300 text-neutral-700"
-                              }`}
+                              onClick={() => handleAdultSizeClick(idx, t)}
+                              className={`rounded-full border px-3 py-1 text-[11px] font-medium transition
+                                ${
+                                  active
+                                    ? "border-black bg-neutral-900 text-white shadow-sm"
+                                    : "border-neutral-300 bg-white text-neutral-700 hover:border-neutral-500"
+                                }`}
                             >
-                              Adulto
+                              {t}
                             </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
 
+                  {/* Niños */}
+                  {familySizes.kids.map((current, idx) => (
+                    <div key={`kid-${idx}`} className="space-y-1">
+                      <p className="text-[11px] font-medium text-neutral-700">
+                        Niño {idx + 1}
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {KID_SIZES.map((t) => {
+                          const active = current === t;
+                          return (
                             <button
+                              key={t}
                               type="button"
-                              onClick={() => handlePieceTypeSelect(idx, "kid")}
-                              className={`px-3 py-1.5 rounded-full text-[11px] border transition ${
-                                pieceType === "kid"
-                                  ? "bg-neutral-900 text-white border-black"
-                                  : "bg-white border-neutral-300 text-neutral-700"
-                              }`}
+                              onClick={() => handleKidSizeClick(idx, t)}
+                              className={`rounded-full border px-3 py-1 text-[11px] font-medium transition
+                                ${
+                                  active
+                                    ? "border-black bg-neutral-900 text-white shadow-sm"
+                                    : "border-neutral-300 bg-white text-neutral-700 hover:border-neutral-500"
+                                }`}
                             >
-                              Niño
+                              {t}
                             </button>
-                          </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
 
-                          {/* Mostrar tallas SOLO si eligió tipo */}
-                          {pieceType && (
-                            <>
-                              <p className="text-[10px] text-neutral-500 mt-1">
-                                Tallas (
-                                {pieceType === "adult" ? "Adulto" : "Niño"})
-                              </p>
+                  {showSizeGuide && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setGuideTab("adult");
+                        setShowGuide(true);
+                      }}
+                      className="mt-2 text-[11px] font-medium text-blue-600 hover:underline"
+                    >
+                      Ver guía de tallas
+                    </button>
+                  )}
 
-                              <div className="flex flex-wrap gap-2">
-                                {(pieceType === "adult"
-                                  ? ADULT_SIZES
-                                  : KID_SIZES
-                                ).map((t) => {
-                                  const active = current === t;
-                                  return (
-                                    <button
-                                      key={`${pieceType}-${t}-${idx}`}
-                                      type="button"
-                                      onClick={() =>
-                                        handleComboSizeClick(idx, t)
-                                      }
-                                      className={`rounded-full border px-3 py-1 text-[11px] font-medium transition
-                                        ${
-                                          active
-                                            ? "border-black bg-neutral-900 text-white shadow-sm"
-                                            : "border-neutral-300 bg-white text-neutral-700 hover:border-neutral-500"
-                                        }`}
-                                    >
-                                      {t}
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            </>
-                          )}
+                  <p className="mt-1 text-[11px] text-neutral-500">
+                    * Si necesitas combinaciones especiales, también puedes
+                    detallarlas en comentarios o por WhatsApp luego del pedido.
+                  </p>
+                </div>
+              )}
+
+              {/* Pijamas nuevas */}
+              {isFamilyPajama && isFreeComboPajama && hasComboMembers && (
+                <div className="mt-4 space-y-3">
+                  <p className="text-xs font-semibold text-neutral-700">
+                    Selecciona si cada prenda es adulto o niño y su talla
+                  </p>
+
+                  {comboSizes.map((current, idx) => {
+                    const pieceType = pieceTypes[idx];
+
+                    return (
+                      <div key={`combo-${idx}`} className="space-y-2">
+                        <p className="text-[11px] font-medium text-neutral-700">
+                          Prenda {idx + 1}
+                        </p>
+
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handlePieceTypeSelect(idx, "adult")}
+                            className={`px-3 py-1.5 rounded-full text-[11px] border transition ${
+                              pieceType === "adult"
+                                ? "bg-neutral-900 text-white border-black"
+                                : "bg-white border-neutral-300 text-neutral-700"
+                            }`}
+                          >
+                            Adulto
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handlePieceTypeSelect(idx, "kid")}
+                            className={`px-3 py-1.5 rounded-full text-[11px] border transition ${
+                              pieceType === "kid"
+                                ? "bg-neutral-900 text-white border-black"
+                                : "bg-white border-neutral-300 text-neutral-700"
+                            }`}
+                          >
+                            Niño
+                          </button>
                         </div>
-                      );
-                    })}
 
-                    {showSizeGuide && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setGuideTab("adult");
-                          setShowGuide(true);
-                        }}
-                        className="mt-2 text-[11px] font-medium text-blue-600 hover:underline"
-                      >
-                        Ver guía de tallas
-                      </button>
-                    )}
+                        {pieceType && (
+                          <>
+                            <p className="text-[10px] text-neutral-500 mt-1">
+                              Tallas ({pieceType === "adult" ? "Adulto" : "Niño"})
+                            </p>
 
-                    <p className="mt-1 text-[11px] text-neutral-500">
-                      * Puedes combinar tallas de adultos y niños como prefieras
-                      dentro del pack.
-                    </p>
-                  </div>
-                )}
+                            <div className="flex flex-wrap gap-2">
+                              {(pieceType === "adult" ? ADULT_SIZES : KID_SIZES).map((t) => {
+                                const active = current === t;
+                                return (
+                                  <button
+                                    key={`${pieceType}-${t}-${idx}`}
+                                    type="button"
+                                    onClick={() => handleComboSizeClick(idx, t)}
+                                    className={`rounded-full border px-3 py-1 text-[11px] font-medium transition
+                                      ${
+                                        active
+                                          ? "border-black bg-neutral-900 text-white shadow-sm"
+                                          : "border-neutral-300 bg-white text-neutral-700 hover:border-neutral-500"
+                                      }`}
+                                  >
+                                    {t}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    );
+                  })}
 
-              {/* Guía de tallas para ropa / pijamas simples (solo tallas, sin packs) */}
+                  {showSizeGuide && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setGuideTab("adult");
+                        setShowGuide(true);
+                      }}
+                      className="mt-2 text-[11px] font-medium text-blue-600 hover:underline"
+                    >
+                      Ver guía de tallas
+                    </button>
+                  )}
+
+                  <p className="mt-1 text-[11px] text-neutral-500">
+                    * Puedes combinar tallas de adultos y niños como prefieras dentro del pack.
+                  </p>
+                </div>
+              )}
+
               {showSizeGuide && !isOldFamilyPack && !isFreeComboPajama && (
                 <button
                   type="button"
@@ -746,7 +720,7 @@ export default function ProductDetailClient({
             </div>
           )}
 
-          {/* COLORES (inteligente: solo selector si hay 2+ colores) */}
+          {/* COLORES */}
           {colorVariants.length > 1 && (
             <div className="rounded-2xl bg-white border border-neutral-200 p-4 shadow-sm">
               <div className="flex items-center justify-between mb-3">
@@ -801,12 +775,10 @@ export default function ProductDetailClient({
             </div>
           )}
 
-          {/* Si hay exactamente 1 color, lo mostramos como info y no como selector */}
           {colorVariants.length === 1 && (
             <div className="rounded-2xl bg-white border border-neutral-200 p-4 shadow-sm">
               <p className="text-xs text-neutral-600">
-                Color único:{" "}
-                <span className="font-medium">{colorVariants[0].name}</span>
+                Color único: <span className="font-medium">{colorVariants[0].name}</span>
               </p>
             </div>
           )}
@@ -840,9 +812,7 @@ export default function ProductDetailClient({
                   onClick={() => setFeaturesExpanded((v) => !v)}
                   className="mt-2 text-xs font-medium text-blue-600 hover:underline"
                 >
-                  {featuresExpanded
-                    ? "Ver menos"
-                    : "Ver todas las características"}
+                  {featuresExpanded ? "Ver menos" : "Ver todas las características"}
                 </button>
               )}
             </div>
@@ -864,7 +834,7 @@ export default function ProductDetailClient({
                 className="group w-40 flex-shrink-0 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
               >
                 <div className="relative aspect-square w-full bg-neutral-50">
-                  <Image
+                  <ProductImage
                     src={p.main_image_url ?? fallbackImg}
                     alt={p.name}
                     fill
@@ -965,24 +935,11 @@ export default function ProductDetailClient({
                       { t: "XL", p: "100–106", c: "90–96", h: "178–184" },
                       { t: "XXL", p: "106–112", c: "96–102", h: "184–190" },
                     ].map((row, i) => (
-                      <tr
-                        key={row.t}
-                        className={
-                          i % 2 === 0 ? "bg-white" : "bg-neutral-50/60"
-                        }
-                      >
-                        <td className="border border-neutral-100 px-3 py-2 font-medium">
-                          {row.t}
-                        </td>
-                        <td className="border border-neutral-100 px-3 py-2">
-                          {row.p}
-                        </td>
-                        <td className="border border-neutral-100 px-3 py-2">
-                          {row.c}
-                        </td>
-                        <td className="border border-neutral-100 px-3 py-2">
-                          {row.h}
-                        </td>
+                      <tr key={row.t} className={i % 2 === 0 ? "bg-white" : "bg-neutral-50/60"}>
+                        <td className="border border-neutral-100 px-3 py-2 font-medium">{row.t}</td>
+                        <td className="border border-neutral-100 px-3 py-2">{row.p}</td>
+                        <td className="border border-neutral-100 px-3 py-2">{row.c}</td>
+                        <td className="border border-neutral-100 px-3 py-2">{row.h}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -1022,21 +979,10 @@ export default function ProductDetailClient({
                       { t: "14", e: "13–14 años", h: "158–164" },
                       { t: "16", e: "15–16 años", h: "170–172" },
                     ].map((row, i) => (
-                      <tr
-                        key={row.t}
-                        className={
-                          i % 2 === 0 ? "bg-white" : "bg-neutral-50/60"
-                        }
-                      >
-                        <td className="border border-neutral-100 px-3 py-2 font-medium">
-                          {row.t}
-                        </td>
-                        <td className="border border-neutral-100 px-3 py-2">
-                          {row.e}
-                        </td>
-                        <td className="border border-neutral-100 px-3 py-2">
-                          {row.h}
-                        </td>
+                      <tr key={row.t} className={i % 2 === 0 ? "bg-white" : "bg-neutral-50/60"}>
+                        <td className="border border-neutral-100 px-3 py-2 font-medium">{row.t}</td>
+                        <td className="border border-neutral-100 px-3 py-2">{row.e}</td>
+                        <td className="border border-neutral-100 px-3 py-2">{row.h}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -1064,8 +1010,9 @@ export default function ProductDetailClient({
             >
               <X className="h-4 w-4" />
             </button>
+
             <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl bg-neutral-900">
-              <Image
+              <ProductImage
                 src={mainImage}
                 alt={product.name}
                 fill
