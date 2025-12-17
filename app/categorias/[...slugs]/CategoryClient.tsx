@@ -2,8 +2,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
+import { ProductImage } from "@/app/components/ProductImage";
 
 type Product = {
   id: number;
@@ -93,7 +93,7 @@ export default function CategoryClient({ products, fallbackImg }: Props) {
             >
               {/* IMAGEN */}
               <div className="relative w-full bg-neutral-50 aspect-square">
-                <Image
+                <ProductImage
                   src={getProductImageSrc(p.main_image_url ?? fallbackImg)}
                   alt={p.name}
                   fill
@@ -191,9 +191,7 @@ export default function CategoryClient({ products, fallbackImg }: Props) {
 
             <button
               type="button"
-              onClick={() =>
-                setPage((p) => Math.min(totalPages, p + 1))
-              }
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
               className={`px-3 py-1.5 text-xs rounded-full border ${
                 page === totalPages
