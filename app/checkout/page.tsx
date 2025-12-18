@@ -965,13 +965,13 @@ export default function Checkout() {
       >
         <div className="flex items-center gap-3 min-w-0">
           <div className="relative h-9 w-9 rounded-md bg-gray-50 border border-black/10 flex-shrink-0 overflow-hidden">
-            <Image
-              src={it.mainImage || "/placeholder-product.png"}
-              alt={(it as any).name || "Producto"}
-              fill
-              sizes="36px"
-              className="object-contain p-1"
-            />
+           <ProductImage
+  src={it.mainImage || "/placeholder-product.png"}
+  alt={(it as any).name || "Producto"}
+  fill
+  sizes="36px"
+  className="object-contain p-1"
+/>
           </div>
           <div className="min-w-0">
             <div

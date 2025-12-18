@@ -2,18 +2,15 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { ArrowLeft, ShoppingBag, Trash2 } from "lucide-react";
 import { useCart } from "../components/cart-provider";
+import { ProductImage } from "@/app/components/ProductImage";
 
 export default function CartPage() {
   const { items, clear, removeItem } = useCart();
 
   const itemCount = items.reduce((acc, it) => acc + it.qty, 0);
-  const subtotal = items.reduce(
-    (acc, it) => acc + (it.price ?? 0) * it.qty,
-    0
-  );
+  const subtotal = items.reduce((acc, it) => acc + (it.price ?? 0) * it.qty, 0);
 
   const subtotalLabel = `S/ ${subtotal.toFixed(2)}`;
 
@@ -160,7 +157,7 @@ export default function CartPage() {
                     className="flex gap-3 px-4 py-3 sm:gap-4 sm:px-5"
                   >
                     <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl bg-neutral-50 border">
-                      <Image
+                      <ProductImage
                         src={item.mainImage || "/placeholder-product.png"}
                         alt={item.name}
                         fill
