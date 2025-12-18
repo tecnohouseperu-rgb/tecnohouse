@@ -1,8 +1,9 @@
+// app/components/CartToast.tsx
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "./cart-provider";
+import { ProductImage } from "@/app/components/ProductImage";
 
 const FALLBACK_IMG = "/placeholder-product.png";
 
@@ -26,10 +27,11 @@ export default function CartToast() {
     >
       <div className="flex gap-3 rounded-2xl bg-neutral-900/95 p-3 text-white shadow-2xl ring-1 ring-black/40">
         <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl bg-neutral-800">
-          <Image
+          <ProductImage
             src={img}
             alt={lastAdded.name}
             fill
+            sizes="64px"
             className="object-contain p-1.5"
           />
         </div>
