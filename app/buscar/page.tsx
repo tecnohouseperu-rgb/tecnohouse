@@ -1,7 +1,7 @@
 // app/buscar/page.tsx
-import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/server";
+import { ProductImage } from "@/app/components/ProductImage";
 
 type Props = {
   // 👇 ahora es una Promise, como lo está manejando Next
@@ -47,10 +47,7 @@ export default async function BuscarPage({ searchParams }: Props) {
   const { data, error } = await supabase
     .from("products")
     .select("id, name, slug, main_image_url, price, old_price, brand")
-    .or(
-      // name o brand contienen las palabras
-      `name.ilike.${pattern},brand.ilike.${pattern}`
-    )
+    .or(`name.ilike.${pattern},brand.ilike.${pattern}`)
     .eq("is_active", true)
     .limit(60);
 
@@ -94,7 +91,7 @@ export default async function BuscarPage({ searchParams }: Props) {
               className="group rounded-2xl border bg-white overflow-hidden flex flex-col hover:shadow-md transition-shadow"
             >
               <div className="relative w-full pt-[100%] bg-neutral-50">
-                <Image
+                <ProductImage
                   src={p.main_image_url || "/placeholder-product.png"}
                   alt={p.name}
                   fill
@@ -102,17 +99,18 @@ export default async function BuscarPage({ searchParams }: Props) {
                   className="object-contain p-2 group-hover:scale-[1.03] transition-transform"
                 />
               </div>
+
               <div className="px-3 pb-3 pt-2 flex flex-col gap-1">
                 <p className="text-xs text-neutral-500 uppercase tracking-wide">
                   {p.brand || "TecnoHouse"}
                 </p>
-                <h2 className="text-sm font-medium line-clamp-2">
-                  {p.name}
-                </h2>
+                <h2 className="text-sm font-medium line-clamp-2">{p.name}</h2>
+
                 <div className="mt-1 flex items-baseline gap-1">
                   <span className="text-base font-semibold text-red-600">
                     {p.price !== null ? `S/ ${p.price.toFixed(2)}` : "S/ —"}
                   </span>
+
                   {p.old_price && (
                     <span className="text-xs text-neutral-400 line-through">
                       S/ {p.old_price.toFixed(2)}
