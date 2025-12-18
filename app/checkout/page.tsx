@@ -3,7 +3,7 @@
 import { useCart } from "../components/cart-provider";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { initMercadoPago, Wallet } from "@mercadopago/sdk-react";
-import Image from "next/image";
+import { ProductImage } from "@/app/components/ProductImage";
 
 // ====== Tipos / helpers ======
 type UbigeoTree = Array<{
