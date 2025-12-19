@@ -116,6 +116,12 @@ export default function ProductDetailClient({
   // 👉 Detectamos si es un producto de pijamas familiares
   const isFamilyPajama = product.slug.toLowerCase().includes("pijama");
 
+  // 👉 Detectamos si es un producto Crocs (adultos o niños)
+  const isCrocs =
+    product.tags?.includes("crocs") ||
+    product.name.toLowerCase().includes("crocs") ||
+    product.slug.toLowerCase().includes("crocs");
+
   // 👉 Color inteligente:
   // - 0 colores: null
   // - 1 color: lo selecciona automáticamente
@@ -141,11 +147,12 @@ export default function ProductDetailClient({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [featuresExpanded, setFeaturesExpanded] = useState(false);
 
-  // Guía de tallas (solo ropa/pijamas)
+  // Guía de tallas (solo ropa/pijamas – Crocs tendrá su propia guía)
   const [showGuide, setShowGuide] = useState(false);
   const [guideTab, setGuideTab] = useState<"adult" | "kid">("adult");
 
-  const showSizeGuide = isFamilyPajama || product.tags?.includes("tallas");
+  const showSizeGuide =
+    (isFamilyPajama || product.tags?.includes("tallas")) && !isCrocs;
 
   const isSizeBased = sizeVariants.length > 0;
 
@@ -244,7 +251,7 @@ export default function ProductDetailClient({
     if (!baseName) return null;
 
     if (!isFamilyPajama) {
-      // Árboles / otros productos
+      // Crocs, disfraces, árboles, etc.
       return baseName;
     }
 
@@ -282,7 +289,9 @@ export default function ProductDetailClient({
     .map((l) => l.trim())
     .filter(Boolean);
 
-  const featurePreview = featuresExpanded ? featureLines : featureLines.slice(0, 5);
+  const featurePreview = featuresExpanded
+    ? featureLines
+    : featureLines.slice(0, 5);
   const hasMoreFeatures = featureLines.length > 5;
 
   // ========= HANDLERS TALLAS =========
@@ -483,7 +492,9 @@ export default function ProductDetailClient({
               id={product.id}
               name={product.name}
               price={displayPrice ?? 0}
-              mainImage={currentImages[0] ?? product.main_image_url ?? fallbackImg}
+              mainImage={
+                currentImages[0] ?? product.main_image_url ?? fallbackImg
+              }
               size={sizeLabelForCart}
               color={selectedColorName ?? null}
             />
@@ -661,13 +672,18 @@ export default function ProductDetailClient({
                             </p>
 
                             <div className="flex flex-wrap gap-2">
-                              {(pieceType === "adult" ? ADULT_SIZES : KID_SIZES).map((t) => {
+                              {(pieceType === "adult"
+                                ? ADULT_SIZES
+                                : KID_SIZES
+                              ).map((t) => {
                                 const active = current === t;
                                 return (
                                   <button
                                     key={`${pieceType}-${t}-${idx}`}
                                     type="button"
-                                    onClick={() => handleComboSizeClick(idx, t)}
+                                    onClick={() =>
+                                      handleComboSizeClick(idx, t)
+                                    }
                                     className={`rounded-full border px-3 py-1 text-[11px] font-medium transition
                                       ${
                                         active
@@ -700,11 +716,13 @@ export default function ProductDetailClient({
                   )}
 
                   <p className="mt-1 text-[11px] text-neutral-500">
-                    * Puedes combinar tallas de adultos y niños como prefieras dentro del pack.
+                    * Puedes combinar tallas de adultos y niños como prefieras
+                    dentro del pack.
                   </p>
                 </div>
               )}
 
+              {/* Botón guía general (ropa simple, NO Crocs) */}
               {showSizeGuide && !isOldFamilyPack && !isFreeComboPajama && (
                 <button
                   type="button"
@@ -715,6 +733,17 @@ export default function ProductDetailClient({
                   className="mt-3 text-[11px] font-medium text-blue-600 hover:underline"
                 >
                   Ver guía de tallas
+                </button>
+              )}
+
+              {/* Botón guía Crocs (solo productos Crocs) */}
+              {isCrocs && (
+                <button
+                  type="button"
+                  onClick={() => setShowGuide(true)}
+                  className="mt-3 text-[11px] font-medium text-blue-600 hover:underline"
+                >
+                  Ver guía de tallas Crocs
                 </button>
               )}
             </div>
@@ -778,7 +807,8 @@ export default function ProductDetailClient({
           {colorVariants.length === 1 && (
             <div className="rounded-2xl bg-white border border-neutral-200 p-4 shadow-sm">
               <p className="text-xs text-neutral-600">
-                Color único: <span className="font-medium">{colorVariants[0].name}</span>
+                Color único:{" "}
+                <span className="font-medium">{colorVariants[0].name}</span>
               </p>
             </div>
           )}
@@ -812,7 +842,9 @@ export default function ProductDetailClient({
                   onClick={() => setFeaturesExpanded((v) => !v)}
                   className="mt-2 text-xs font-medium text-blue-600 hover:underline"
                 >
-                  {featuresExpanded ? "Ver menos" : "Ver todas las características"}
+                  {featuresExpanded
+                    ? "Ver menos"
+                    : "Ver todas las características"}
                 </button>
               )}
             </div>
@@ -856,142 +888,201 @@ export default function ProductDetailClient({
         </section>
       )}
 
-      {/* MODAL GUÍA DE TALLAS (Premium) */}
-      {showGuide && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4 animate-fadeIn"
-          onClick={() => setShowGuide(false)}
-        >
+      {/* MODAL GUÍA DE TALLAS */}
+      {showGuide &&
+        (isCrocs ? (
+          // ===== MODAL CROCS (imagen completa) =====
           <div
-            className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden animate-scaleIn"
-            onClick={(e) => e.stopPropagation()}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4 animate-fadeIn"
+            onClick={() => setShowGuide(false)}
           >
-            {/* Header */}
-            <div className="sticky top-0 bg-white border-b border-neutral-100 px-6 py-4 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-neutral-900">
-                Guía de tallas
-              </h3>
-              <button
-                onClick={() => setShowGuide(false)}
-                className="h-9 w-9 flex items-center justify-center rounded-full bg-neutral-100 hover:bg-neutral-200 transition"
-              >
-                <X className="h-5 w-5 text-neutral-700" />
-              </button>
-            </div>
-
-            {/* Tabs */}
-            <div className="px-6 py-3 flex gap-2">
-              <button
-                onClick={() => setGuideTab("adult")}
-                className={`px-4 py-2 text-sm font-medium rounded-full transition ${
-                  guideTab === "adult"
-                    ? "bg-neutral-900 text-white shadow-md"
-                    : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
-                }`}
-              >
-                Adultos
-              </button>
-              <button
-                onClick={() => setGuideTab("kid")}
-                className={`px-4 py-2 text-sm font-medium rounded-full transition ${
-                  guideTab === "kid"
-                    ? "bg-neutral-900 text-white shadow-md"
-                    : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
-                }`}
-              >
-                Niños
-              </button>
-            </div>
-
-            {/* Tabla adultos */}
-            {guideTab === "adult" && (
-              <div className="px-6 pb-6 space-y-3">
-                <p className="text-xs text-neutral-500">
-                  Las medidas pueden variar ligeramente según el fabricante.
-                </p>
-
-                <table className="w-full border-collapse text-sm rounded-xl overflow-hidden shadow-sm">
-                  <thead className="bg-neutral-50 text-neutral-700">
-                    <tr>
-                      <th className="border border-neutral-100 px-3 py-2 font-semibold">
-                        Talla
-                      </th>
-                      <th className="border border-neutral-100 px-3 py-2 font-semibold">
-                        Pecho (cm)
-                      </th>
-                      <th className="border border-neutral-100 px-3 py-2 font-semibold">
-                        Cintura (cm)
-                      </th>
-                      <th className="border border-neutral-100 px-3 py-2 font-semibold">
-                        Altura (cm)
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[
-                      { t: "S", p: "82–88", c: "72–78", h: "155–165" },
-                      { t: "M", p: "88–94", c: "78–84", h: "165–172" },
-                      { t: "L", p: "94–100", c: "84–90", h: "172–178" },
-                      { t: "XL", p: "100–106", c: "90–96", h: "178–184" },
-                      { t: "XXL", p: "106–112", c: "96–102", h: "184–190" },
-                    ].map((row, i) => (
-                      <tr key={row.t} className={i % 2 === 0 ? "bg-white" : "bg-neutral-50/60"}>
-                        <td className="border border-neutral-100 px-3 py-2 font-medium">{row.t}</td>
-                        <td className="border border-neutral-100 px-3 py-2">{row.p}</td>
-                        <td className="border border-neutral-100 px-3 py-2">{row.c}</td>
-                        <td className="border border-neutral-100 px-3 py-2">{row.h}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+            <div
+              className="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-scaleIn"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="sticky top-0 bg-white border-b border-neutral-100 px-6 py-4 flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-neutral-900">
+                  Guía de tallas Crocs
+                </h3>
+                <button
+                  onClick={() => setShowGuide(false)}
+                  className="h-9 w-9 flex items-center justify-center rounded-full bg-neutral-100 hover:bg-neutral-200 transition"
+                >
+                  <X className="h-5 w-5 text-neutral-700" />
+                </button>
               </div>
-            )}
 
-            {/* Tabla niños */}
-            {guideTab === "kid" && (
-              <div className="px-6 pb-6 space-y-3">
-                <p className="text-xs text-neutral-500">
-                  Guía referencial según la edad y estatura.
-                </p>
-
-                <table className="w-full border-collapse text-sm rounded-xl overflow-hidden shadow-sm">
-                  <thead className="bg-neutral-50 text-neutral-700">
-                    <tr>
-                      <th className="border border-neutral-100 px-3 py-2 font-semibold">
-                        Talla
-                      </th>
-                      <th className="border border-neutral-100 px-3 py-2 font-semibold">
-                        Edad aprox.
-                      </th>
-                      <th className="border border-neutral-100 px-3 py-2 font-semibold">
-                        Altura (cm)
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[
-                      { t: "2", e: "2 años", h: "86–92" },
-                      { t: "4", e: "3–4 años", h: "98–104" },
-                      { t: "6", e: "5–6 años", h: "110–116" },
-                      { t: "8", e: "7–8 años", h: "122–128" },
-                      { t: "10", e: "9–10 años", h: "134–140" },
-                      { t: "12", e: "11–12 años", h: "146–152" },
-                      { t: "14", e: "13–14 años", h: "158–164" },
-                      { t: "16", e: "15–16 años", h: "170–172" },
-                    ].map((row, i) => (
-                      <tr key={row.t} className={i % 2 === 0 ? "bg-white" : "bg-neutral-50/60"}>
-                        <td className="border border-neutral-100 px-3 py-2 font-medium">{row.t}</td>
-                        <td className="border border-neutral-100 px-3 py-2">{row.e}</td>
-                        <td className="border border-neutral-100 px-3 py-2">{row.h}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              {/* Imagen de la tabla Crocs */}
+              <div className="p-4 flex justify-center">
+                {/* 🔴 Cambia la ruta por la URL real de tu imagen en Supabase/Cloudinary/etc */}
+                <img    src="https://nelyvuxwskmqwtcmystn.supabase.co/storage/v1/object/public/products/crocs/adultos/tallas-crocs.jpg"
+                  alt="Tabla de equivalencia de tallas Crocs"
+                  className="max-h-[80vh] w-full object-contain rounded-xl"
+                />
               </div>
-            )}
+            </div>
           </div>
-        </div>
-      )}
+        ) : (
+          // ===== MODAL ROPA / PIJAMAS (tabla adultos/niños) =====
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4 animate-fadeIn"
+            onClick={() => setShowGuide(false)}
+          >
+            <div
+              className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden animate-scaleIn"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="sticky top-0 bg-white border-b border-neutral-100 px-6 py-4 flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-neutral-900">
+                  Guía de tallas
+                </h3>
+                <button
+                  onClick={() => setShowGuide(false)}
+                  className="h-9 w-9 flex items-center justify-center rounded-full bg-neutral-100 hover:bg-neutral-200 transition"
+                >
+                  <X className="h-5 w-5 text-neutral-700" />
+                </button>
+              </div>
+
+              {/* Tabs */}
+              <div className="px-6 py-3 flex gap-2">
+                <button
+                  onClick={() => setGuideTab("adult")}
+                  className={`px-4 py-2 text-sm font-medium rounded-full transition ${
+                    guideTab === "adult"
+                      ? "bg-neutral-900 text-white shadow-md"
+                      : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+                  }`}
+                >
+                  Adultos
+                </button>
+                <button
+                  onClick={() => setGuideTab("kid")}
+                  className={`px-4 py-2 text-sm font-medium rounded-full transition ${
+                    guideTab === "kid"
+                      ? "bg-neutral-900 text-white shadow-md"
+                      : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+                  }`}
+                >
+                  Niños
+                </button>
+              </div>
+
+              {/* Tabla adultos */}
+              {guideTab === "adult" && (
+                <div className="px-6 pb-6 space-y-3">
+                  <p className="text-xs text-neutral-500">
+                    Las medidas pueden variar ligeramente según el fabricante.
+                  </p>
+
+                  <table className="w-full border-collapse text-sm rounded-xl overflow-hidden shadow-sm">
+                    <thead className="bg-neutral-50 text-neutral-700">
+                      <tr>
+                        <th className="border border-neutral-100 px-3 py-2 font-semibold">
+                          Talla
+                        </th>
+                        <th className="border border-neutral-100 px-3 py-2 font-semibold">
+                          Pecho (cm)
+                        </th>
+                        <th className="border border-neutral-100 px-3 py-2 font-semibold">
+                          Cintura (cm)
+                        </th>
+                        <th className="border border-neutral-100 px-3 py-2 font-semibold">
+                          Altura (cm)
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        { t: "S", p: "82–88", c: "72–78", h: "155–165" },
+                        { t: "M", p: "88–94", c: "78–84", h: "165–172" },
+                        { t: "L", p: "94–100", c: "84–90", h: "172–178" },
+                        { t: "XL", p: "100–106", c: "90–96", h: "178–184" },
+                        { t: "XXL", p: "106–112", c: "96–102", h: "184–190" },
+                      ].map((row, i) => (
+                        <tr
+                          key={row.t}
+                          className={
+                            i % 2 === 0 ? "bg-white" : "bg-neutral-50/60"
+                          }
+                        >
+                          <td className="border border-neutral-100 px-3 py-2 font-medium">
+                            {row.t}
+                          </td>
+                          <td className="border border-neutral-100 px-3 py-2">
+                            {row.p}
+                          </td>
+                          <td className="border border-neutral-100 px-3 py-2">
+                            {row.c}
+                          </td>
+                          <td className="border border-neutral-100 px-3 py-2">
+                            {row.h}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {/* Tabla niños */}
+              {guideTab === "kid" && (
+                <div className="px-6 pb-6 space-y-3">
+                  <p className="text-xs text-neutral-500">
+                    Guía referencial según la edad y estatura.
+                  </p>
+
+                  <table className="w-full border-collapse text-sm rounded-xl overflow-hidden shadow-sm">
+                    <thead className="bg-neutral-50 text-neutral-700">
+                      <tr>
+                        <th className="border border-neutral-100 px-3 py-2 font-semibold">
+                          Talla
+                        </th>
+                        <th className="border border-neutral-100 px-3 py-2 font-semibold">
+                          Edad aprox.
+                        </th>
+                        <th className="border border-neutral-100 px-3 py-2 font-semibold">
+                          Altura (cm)
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        { t: "2", e: "2 años", h: "86–92" },
+                        { t: "4", e: "3–4 años", h: "98–104" },
+                        { t: "6", e: "5–6 años", h: "110–116" },
+                        { t: "8", e: "7–8 años", h: "122–128" },
+                        { t: "10", e: "9–10 años", h: "134–140" },
+                        { t: "12", e: "11–12 años", h: "146–152" },
+                        { t: "14", e: "13–14 años", h: "158–164" },
+                        { t: "16", e: "15–16 años", h: "170–172" },
+                      ].map((row, i) => (
+                        <tr
+                          key={row.t}
+                          className={
+                            i % 2 === 0 ? "bg-white" : "bg-neutral-50/60"
+                          }
+                        >
+                          <td className="border border-neutral-100 px-3 py-2 font-medium">
+                            {row.t}
+                          </td>
+                          <td className="border border-neutral-100 px-3 py-2">
+                            {row.e}
+                          </td>
+                          <td className="border border-neutral-100 px-3 py-2">
+                            {row.h}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
 
       {/* MODAL DE IMAGEN AMPLIADA */}
       {isModalOpen && (
