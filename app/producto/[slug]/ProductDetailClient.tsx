@@ -48,6 +48,9 @@ type Props = {
 const ADULT_SIZES = ["S", "M", "L", "XL", "XXL"];
 const KID_SIZES = ["2", "4", "6", "8", "10", "12", "14", "16"];
 
+// Ruta estática de la guía Crocs (archivo en /public/images/tallas-crocs.jpg)
+const CROCS_GUIDE_IMAGE_URL = "/images/tallas-crocs.jpg";
+
 type FamilySizeState = {
   adults: (string | null)[];
   kids: (string | null)[];
@@ -915,8 +918,8 @@ export default function ProductDetailClient({
 
               {/* Imagen de la tabla Crocs */}
               <div className="p-4 flex justify-center">
-                {/* 🔴 Cambia la ruta por la URL real de tu imagen en Supabase/Cloudinary/etc */}
-                <img    src="https://nelyvuxwskmqwtcmystn.supabase.co/storage/v1/object/public/products/crocs/adultos/tallas-crocs.jpg"
+                <img
+                  src={CROCS_GUIDE_IMAGE_URL}
                   alt="Tabla de equivalencia de tallas Crocs"
                   className="max-h-[80vh] w-full object-contain rounded-xl"
                 />
