@@ -1,12 +1,10 @@
-// app/api/facebook-navidad-feed/route.ts
 import { NextResponse } from "next/server";
-import { createClient } from "@/utils/supabase/server"; // ajusta si tu ruta es distinta
+import { createClient } from "@/utils/supabase/server"; // mismo import que usas en otras partes
 
-// Escapar textos para CSV
+// Escapar valores para CSV
 function escapeCsv(value: string | number | null | undefined): string {
   if (value === null || value === undefined) return "";
   const str = String(value);
-  // si tiene comas, comillas o saltos de línea, lo rodeamos con comillas
   if (/[",\n]/.test(str)) {
     return `"${str.replace(/"/g, '""')}"`;
   }
@@ -16,18 +14,39 @@ function escapeCsv(value: string | number | null | undefined): string {
 export async function GET() {
   const supabase = createClient();
 
-  // TODO: ajusta el nombre de la tabla y el filtro de categoría según tu esquema
-  const { data: products, error } = await supabase
-    .from("products") // o el nombre real de tu tabla
+  // 👇 AJUSTADO a tu tabla public.products
+  const { data, error } = await supabase
+    .from("products")
     .select(
-      "id, name, slug, price, main_image_url, description, brand, category_slug"
+      `
+      id,
+      name,
+      slug,
+      price,
+      main_image_url,
+      image_url,
+      description,
+      brand,
+      tags,
+      subcategory_slug,
+      availability,
+      stock,
+      is_active
+    `
     )
-    .eq("category_slug", "navidad"); // o usa tags, etc.
+    .eq("subcategory_slug", "navidad")   // productos de Navidad
+    .eq("is_active", true);              // solo activos
 
   if (error) {
-    console.error("Error obteniendo productos para feed:", error.message);
-    return new NextResponse("Error al generar feed", { status: 500 });
+    console.error("Supabase error feed navidad:", error);
+    // ⚠️ MOSTRAMOS EL MENSAJE PARA DEBUG
+    return new NextResponse(
+      `Error Supabase al generar feed: ${error.message}`,
+      { status: 500 }
+    );
   }
+
+  const products = data ?? [];
 
   const header = [
     "id",
@@ -42,27 +61,39 @@ export async function GET() {
     "google_product_category",
   ].join(",");
 
-  const rows =
-    products?.map((p) => {
-      const priceString = p.price
-        ? `${Number(p.price).toFixed(2)} PEN` // formato requerido por Meta: "39.40 PEN"
+  const rows = products.map((p) => {
+    const priceNumber =
+      typeof p.price === "number" ? p.price : Number(p.price ?? 0);
+
+    const priceString =
+      priceNumber && !Number.isNaN(priceNumber)
+        ? `${priceNumber.toFixed(2)} PEN`
         : "";
 
-      const link = `https://www.tecnohouseperu.com/producto/${p.slug}`;
+    const link = `https://www.tecnohouseperu.com/producto/${p.slug}`;
 
-      return [
-        escapeCsv(p.id),
-        escapeCsv(p.name),
-        escapeCsv(p.description || p.name),
-        escapeCsv("in stock"), // puedes cambiar según tu lógica
-        escapeCsv("new"),
-        escapeCsv(priceString),
-        escapeCsv(link),
-        escapeCsv(p.main_image_url),
-        escapeCsv(p.brand || "TecnoHouse Perú"),
-        escapeCsv("Home & Garden > Holiday & Seasonal Decor"), // opcional, puedes cambiar
-      ].join(",");
-    }) || [];
+    // si main_image_url está vacío, usamos image_url
+    const imageUrl = p.main_image_url || p.image_url || "";
+
+    // availability de Supabase lo convertimos a texto
+    const availability =
+      p.availability && typeof p.availability === "string"
+        ? p.availability
+        : "in stock";
+
+    return [
+      escapeCsv(p.id),
+      escapeCsv(p.name),
+      escapeCsv(p.description || p.name),
+      escapeCsv(availability),
+      escapeCsv("new"),
+      escapeCsv(priceString),
+      escapeCsv(link),
+      escapeCsv(imageUrl),
+      escapeCsv(p.brand || "TecnoHouse Perú"),
+      escapeCsv("Home & Garden > Holiday & Seasonal Decor"),
+    ].join(",");
+  });
 
   const csv = [header, ...rows].join("\n");
 
@@ -71,7 +102,7 @@ export async function GET() {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
       "Content-Disposition": 'inline; filename="facebook-navidad-feed.csv"',
-      "Cache-Control": "public, max-age=3600", // cache 1h
+      "Cache-Control": "public, max-age=3600",
     },
   });
 }
