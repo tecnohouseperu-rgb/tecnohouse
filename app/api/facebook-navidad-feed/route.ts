@@ -25,9 +25,10 @@ export async function GET() {
       brand,
       stock,
       availability,
-      is_active
+      is_active,
+      subcategory_slug
     `)
-    .eq("is_active", true);   // SOLO este filtro
+    .eq("is_active", true); // TODO: si luego quieres solo navidad, aquí podemos filtrar
 
   if (error) {
     console.error("Supabase error feed navidad:", error);
@@ -50,6 +51,8 @@ export async function GET() {
     "image_link",
     "brand",
     "google_product_category",
+    "product_type",       // <- para usar subcategory_slug
+    "custom_label_0"      // <- también subcategory_slug
   ].join(",");
 
   const rows = products.map((p) => {
@@ -59,18 +62,21 @@ export async function GET() {
 
     const link = `https://www.tecnohouseperu.com/producto/${p.slug}`;
     const imageUrl = p.main_image_url || p.image_url || "";
+    const availability = "in stock";
 
     return [
       escapeCsv(p.id),
       escapeCsv(p.name),
       escapeCsv(p.description || p.name),
-      escapeCsv("in stock"),
+      escapeCsv(availability),
       escapeCsv("new"),
       escapeCsv(priceString),
       escapeCsv(link),
       escapeCsv(imageUrl),
       escapeCsv(p.brand || "TecnoHouse Perú"),
       escapeCsv("Home & Garden > Holiday & Seasonal Decor"),
+      escapeCsv(p.subcategory_slug || ""), // product_type
+      escapeCsv(p.subcategory_slug || "")  // custom_label_0
     ].join(",");
   });
 
