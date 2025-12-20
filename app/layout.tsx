@@ -9,6 +9,8 @@ import TopBanner from "./components/TopBanner";
 import { CartProvider } from "./components/cart-provider";
 import CartToast from "./components/CartToast";
 
+import Script from "next/script"; // 👈 IMPORTANTE
+
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
@@ -20,11 +22,14 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es">
-      <head>
-        {/* META PIXEL */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        {/* ✅ Pixel de Meta: solo en producción si quieres */}
+        {process.env.NODE_ENV === "production" && (
+          <>
+            <Script
+              id="meta-pixel"
+              strategy="afterInteractive"
+            >{`
               !function(f,b,e,v,n,t,s)
               {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
               n.callMethod.apply(n,arguments):n.queue.push(arguments)};
@@ -33,26 +38,29 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               t.src=v;s=b.getElementsByTagName(e)[0];
               s.parentNode.insertBefore(t,s)}(window, document,'script',
               'https://connect.facebook.net/en_US/fbevents.js');
-
-              fbq('init', '1732485664823260');
+              fbq('init', '26156644683922160');
               fbq('track', 'PageView');
-            `,
-          }}
-        />
-        <noscript>
-          <img
-            height="1"
-            width="1"
-            style={{ display: "none" }}
-            src="https://www.facebook.com/tr?id=1732485664823260&ev=PageView&noscript=1"
-          />
-        </noscript>
-      </head>
+            `}
+            </Script>
 
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+            {/* Noscript para navegadores sin JS */}
+            <noscript>
+              <img
+                height="1"
+                width="1"
+                style={{ display: "none" }}
+                src="https://www.facebook.com/tr?id=26156644683922160&ev=PageView&noscript=1"
+                alt=""
+              />
+            </noscript>
+          </>
+        )}
+
         <CartProvider>
+          {/* Toast global del carrito */}
           <CartToast />
 
+          {/* Banner profesional fijo arriba */}
           <TopBanner
             items={[
               {
@@ -65,6 +73,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             emoji="🚚"
           />
 
+          {/* Header sticky justo debajo del banner */}
           <Header />
           <main>{children}</main>
           <Footer />
