@@ -44,7 +44,12 @@ function MercadoPagoPay({
   shipping,
   onPrefError,
 }: {
-  items: { title: string; quantity: number; unit_price: number }[];
+  items: {
+    title: string;
+    quantity: number;
+    unit_price: number;
+    discounted_unit_price?: number; // ✅ ahora también mandamos el precio con descuento
+  }[];
   orderId: string;
   externalRef?: string;
   payerEmail?: string;
@@ -94,7 +99,7 @@ function MercadoPagoPay({
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            items,
+            items, // 👈 aquí ya van con discounted_unit_price
             external_reference: externalRef || orderId,
             email: payerEmail,
             buyer,
@@ -193,7 +198,7 @@ export default function Checkout() {
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
   const [couponMsg, setCouponMsg] = useState<string | null>(null);
   const [showCoupon, setShowCoupon] = useState(false);
-  const [discount, setDiscount] = useState(0); // 💸 descuento calculado
+  const [discount, setDiscount] = useState(0); // 💸 descuento calculado (total)
 
   // ===== Método de envío
   const [shippingMode, setShippingMode] = useState<ShippingMode>("regular");
@@ -500,14 +505,36 @@ export default function Checkout() {
     }
   };
 
-  // ===== useMemo para items de Mercado Pago (HOOK, va ANTES del early return)
+  // ===== useMemo para items de Mercado Pago (AHORA CON DESCUENTO REPARTIDO)
   const mpItems = useMemo(() => {
-    return items.map((i) => ({
-      title: (i as any).name || (i as any).slug || "Producto",
-      quantity: i.qty,
-      unit_price: i.price ?? 0, // aseguramos number
-    }));
-  }, [items]);
+    if (!items.length) return [];
+
+    // usamos solo el descuento sobre productos (subtotal), no sobre envío
+    const safeSubtotal = subtotal > 0 ? subtotal : 0;
+    const effectiveDiscount =
+      discount > 0 && safeSubtotal > 0
+        ? Math.min(discount, safeSubtotal)
+        : 0;
+
+    const discountRatio =
+      safeSubtotal > 0 ? effectiveDiscount / safeSubtotal : 0;
+
+    return items.map((i) => {
+      const price = i.price ?? 0;
+      const baseLine = price;
+
+      // precio unitario con descuento proporcional
+      const discountedUnit =
+        discountRatio > 0 ? baseLine * (1 - discountRatio) : baseLine;
+
+      return {
+        title: (i as any).name || (i as any).slug || "Producto",
+        quantity: i.qty,
+        unit_price: baseLine,
+        discounted_unit_price: Number(discountedUnit.toFixed(2)),
+      };
+    });
+  }, [items, subtotal, discount]);
 
   // Render vacío si no hay items (sin hooks debajo)
   if (items.length === 0) {
@@ -549,7 +576,7 @@ export default function Checkout() {
       }
 
       setAppliedCoupon(data.coupon);
-      setDiscount(data.discount);
+      setDiscount(data.discount); // total de descuento en S/
       setCoupon(code);
       setCouponMsg(
         `Cupón ${data.coupon} aplicado (-S/ ${data.discount.toFixed(2)})`
@@ -791,7 +818,7 @@ export default function Checkout() {
               : ""}{" "}
             · envío{" "}
             <strong>{shippingMode === "express" ? "express" : "regular"}</strong>
-            . Envío <strong>regular</strong> gratis desde S/ 200.
+            . Envío <strong>regular gratis desde S/ 200</strong>.
           </p>
 
           <div className="mt-2 space-y-2 text-xs text-gray-700">
@@ -825,7 +852,9 @@ export default function Checkout() {
                     shippingMode === "express"
                       ? "border-black ring-2 ring-black/10 bg-white"
                       : "border-gray-200 bg-white hover:border-gray-300"
-                  } ${!canChooseShipping ? "opacity-60 cursor-not-allowed" : ""}`}
+                  } ${
+                    !canChooseShipping ? "opacity-60 cursor-not-allowed" : ""
+                  }`}
                 >
                   <div className="font-medium">Envío express</div>
                   <div className="text-[11px] text-gray-600">
@@ -954,61 +983,64 @@ export default function Checkout() {
             <h2 className="text-xl font-bold">Resumen</h2>
 
             <ul className="space-y-3 max-h-[260px] overflow-y-auto pr-1">
-  {items.map((it, idx) => {
-    const price = it.price ?? 0;
-    const lineTotal = price * it.qty;
+              {items.map((it, idx) => {
+                const price = it.price ?? 0;
+                const lineTotal = price * it.qty;
 
-    return (
-      <li
-        key={`${it.id}-${(it as any).size ?? "std"}-${it.color ?? "default"}-${idx}`}
-        className="flex items-center justify-between gap-3"
-      >
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="relative h-9 w-9 rounded-md bg-gray-50 border border-black/10 flex-shrink-0 overflow-hidden">
-           <ProductImage
-  src={it.mainImage || "/placeholder-product.png"}
-  alt={(it as any).name || "Producto"}
-  fill
-  sizes="36px"
-  className="object-contain p-1"
-/>
-          </div>
-          <div className="min-w-0">
-            <div
-              className="text-sm font-medium"
-              style={{
-                display: "-webkit-box",
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: "vertical",
-                overflow: "hidden",
-              }}
-            >
-              {(it as any).name ?? ""}
-            </div>
+                return (
+                  <li
+                    key={`${it.id}-${(it as any).size ?? "std"}-${
+                      it.color ?? "default"
+                    }-${idx}`}
+                    className="flex items-center justify-between gap-3"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="relative h-9 w-9 rounded-md bg-gray-50 border border-black/10 flex-shrink-0 overflow-hidden">
+                        <ProductImage
+                          src={it.mainImage || "/placeholder-product.png"}
+                          alt={(it as any).name || "Producto"}
+                          fill
+                          sizes="36px"
+                          className="object-contain p-1"
+                        />
+                      </div>
+                      <div className="min-w-0">
+                        <div
+                          className="text-sm font-medium"
+                          style={{
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical",
+                            overflow: "hidden",
+                          }}
+                        >
+                          {(it as any).name ?? ""}
+                        </div>
 
-            {/* 👇 Color elegido */}
-            {it.color && (
-              <div className="text-[11px] text-gray-500">
-                Color:{" "}
-                <span className="capitalize font-medium">
-                  {it.color}
-                </span>
-              </div>
-            )}
+                        {/* 👇 Color elegido */}
+                        {it.color && (
+                          <div className="text-[11px] text-gray-500">
+                            Color:{" "}
+                            <span className="capitalize font-medium">
+                              {it.color}
+                            </span>
+                          </div>
+                        )}
 
-            <div className="text-[11px] text-gray-500">
-              × {it.qty}
-              {(it as any).size ? ` · Talla ${(it as any).size}` : ""}
-            </div>
-          </div>
-        </div>
-        <div className="text-sm font-semibold whitespace-nowrap">
-          S/ {lineTotal.toFixed(2)}
-        </div>
-      </li>
-    );
-  })}
-</ul>
+                        <div className="text-[11px] text-gray-500">
+                          × {it.qty}
+                          {(it as any).size ? ` · Talla ${(it as any).size}` : ""}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-sm font-semibold whitespace-nowrap">
+                      S/ {lineTotal.toFixed(2)}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+
             {/* Cupón */}
             <div className="rounded-xl border border-gray-200 p-2">
               {!appliedCoupon ? (

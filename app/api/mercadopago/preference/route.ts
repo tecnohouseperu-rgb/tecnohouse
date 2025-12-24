@@ -21,7 +21,8 @@ const mpClient = new MercadoPagoConfig({
 type MPItemIn = {
   title: string;
   quantity: number;
-  unit_price: number;
+  unit_price: number; // precio original
+  discounted_unit_price?: number; // ✅ precio ya con descuento aplicado (si hay cupón)
 };
 
 type Buyer = {
@@ -68,13 +69,17 @@ export async function POST(req: NextRequest) {
     }
 
     // Adaptar items al formato que espera MP (con id y currency_id)
-    const mpItems = items.map((it, idx) => ({
-      id: String(idx + 1),
-      title: it.title,
-      quantity: Number(it.quantity || 1),
-      unit_price: Number(it.unit_price),
-      currency_id: "PEN",
-    }));
+    // 🔥 Aquí aplicamos el precio con descuento si viene desde el frontend
+    const mpItems = items.map((it, idx) => {
+      const basePrice = it.discounted_unit_price ?? it.unit_price;
+      return {
+        id: String(idx + 1),
+        title: it.title,
+        quantity: Number(it.quantity || 1),
+        unit_price: Number(basePrice.toFixed(2)), // siempre mandamos el precio FINAL a MP
+        currency_id: "PEN",
+      };
+    });
 
     const pref = new Preference(mpClient);
 
