@@ -6,74 +6,46 @@ export function NavidadBanner() {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    try {
-      // evitar que vuelva a salir si el usuario lo cerró
-      const dismissed = localStorage.getItem("navidad2025-banner-dismissed");
-      if (dismissed === "true") return;
-
-      const now = new Date();
-      const month = now.getMonth(); // 0 = enero, 11 = diciembre
-      const day = now.getDate();
-
-      // Mostrar SOLO 24 y 25 de diciembre
-      if (month === 11 && (day === 24 || day === 25)) {
-        setOpen(true);
-      }
-    } catch {
-      const now = new Date();
-      const month = now.getMonth();
-      const day = now.getDate();
-      if (month === 11 && (day === 24 || day === 25)) {
-        setOpen(true);
-      }
-    }
+    // 👉 Ahora SIEMPRE se abre cuando carga la página
+    setOpen(true);
   }, []);
 
   const closeBanner = () => {
     setOpen(false);
-    try {
-      localStorage.setItem("navidad2025-banner-dismissed", "true");
-    } catch {}
   };
 
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center">
-      {/* Overlay oscuro */}
-      <div
-        className="absolute inset-0 bg-black/50"
-        onClick={closeBanner}
-        aria-hidden="true"
-      />
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center"
+      onClick={closeBanner}   // 👈 clic en cualquier parte cierra
+    >
+      {/* Overlay con blur */}
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
 
       {/* Modal */}
-      <div className="relative mx-4 w-full max-w-md rounded-2xl bg-white shadow-2xl p-3 text-center animate-in fade-in zoom-in duration-200">
-        {/* Botón cerrar */}
+      <div
+        className="relative mx-4 w-full max-w-sm rounded-3xl bg-white/95 shadow-2xl ring-1 ring-white/60 overflow-hidden animate-in fade-in zoom-in duration-200 cursor-pointer"
+      >
+        {/* Botón cerrar (extra pero útil) */}
         <button
           type="button"
           onClick={closeBanner}
-          className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 text-2xl leading-none"
+          className="absolute right-3 top-3 h-7 w-7 flex items-center justify-center rounded-full bg-white/80 text-gray-500 hover:text-gray-700 hover:bg-white shadow-sm text-sm"
           aria-label="Cerrar anuncio"
         >
-          ×
+          ✕
         </button>
 
-        {/* Banner */}
-        <img
-          src="/banners/banner-descuento.jpg"
-          alt="Navidad - 10% de descuento TecnoHouse"
-          className="w-full h-auto rounded-xl select-none"
-        />
-
-        {/* Botón CTA opcional */}
-        <a
-          href="/"
-          onClick={closeBanner}
-          className="mt-3 inline-block w-full bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl py-3 text-sm"
-        >
-          IR A LA TIENDA 🎁
-        </a>
+        {/* Imagen */}
+        <div className="p-3 sm:p-4">
+          <img
+            src="/banners/banner-descuento.jpg"
+            alt="Navidad TecnoHouse - 10% descuento"
+            className="w-full h-auto rounded-2xl border border-pink-100 shadow-sm select-none pointer-events-none"
+          />
+        </div>
       </div>
     </div>
   );
