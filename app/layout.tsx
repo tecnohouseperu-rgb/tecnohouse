@@ -8,6 +8,7 @@ import Footer from "./components/Footer";
 import TopBanner from "./components/TopBanner";
 import { CartProvider } from "./components/cart-provider";
 import CartToast from "./components/CartToast";
+import { NavidadBanner } from "./components/NavidadBanner"; // 🎄 NUEVO
 
 import Script from "next/script"; // 👈 IMPORTANTE
 
@@ -57,6 +58,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         )}
 
         <CartProvider>
+          {/* Banner navideño flotante (solo 24 y 25) */}
+          <NavidadBanner />
+
           {/* Toast global del carrito */}
           <CartToast />
 
