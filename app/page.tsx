@@ -1,6 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
 import BannerCard from "./components/BannerCard";
+import { ProductImage } from "./components/ProductImage";
 
 // 3 banners: Audio, Navidad, iPhones
 const BANNERS = [
@@ -108,7 +108,7 @@ export default function HomePage() {
                   alt={b.alt}
                   desktopSrc={b.desktop}
                   mobileSrc={b.mobile}
-                  href={b.href}          // 👈 ahora sí click al banner
+                  href={b.href}
                   priority={idx === 0}
                 />
               </div>
@@ -126,7 +126,7 @@ export default function HomePage() {
             className="block overflow-hidden rounded-xl shadow-sm border hover:shadow-md transition"
           >
             <div className="relative w-full h-[180px] md:h-[200px] lg:h-[220px] bg-neutral-100">
-              <Image
+              <ProductImage
                 src={b.img}
                 alt={b.alt}
                 fill
@@ -152,7 +152,7 @@ export default function HomePage() {
               className="rounded-xl border hover:shadow-md transition bg-white overflow-hidden"
             >
               <div className="relative h-24 md:h-28 lg:h-32">
-                <Image
+                <ProductImage
                   src={cat.img}
                   alt={cat.name}
                   fill
