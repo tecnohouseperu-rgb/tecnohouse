@@ -1,13 +1,13 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
+import { ProductImage } from "@/app/components/ProductImage";
 
 type Props = {
   alt: string;
   desktopSrc: string;
   mobileSrc: string;
-  href?: string;      // 👈 nueva prop opcional
+  href?: string;      
   priority?: boolean;
 };
 
@@ -21,34 +21,26 @@ export default function BannerCard({
   const content = (
     <div className="relative h-[220px] md:h-[260px] lg:h-[320px] w-full overflow-hidden rounded-xl bg-neutral-100">
       {/* Mobile */}
-      <Image
-        src={mobileSrc}
+      <ProductImage
+        src={mobileSrc || "/placeholder-banner.png"}
         alt={alt}
         fill
-        className="object-cover md:hidden"
         sizes="100vw"
+        className="object-cover md:hidden"
         priority={priority}
       />
-      {/* Desktop/Tablet */}
-      <Image
-        src={desktopSrc}
+
+      {/* Desktop */}
+      <ProductImage
+        src={desktopSrc || "/placeholder-banner.png"}
         alt={alt}
         fill
-        className="hidden md:block object-cover"
         sizes="(max-width: 1200px) 50vw, 33vw"
+        className="hidden md:block object-cover"
         priority={priority}
       />
     </div>
   );
 
-  // Si viene href, lo envolvemos en Link. Si no, solo el banner.
-  if (href) {
-    return (
-      <Link href={href} className="block">
-        {content}
-      </Link>
-    );
-  }
-
-  return content;
+  return href ? <Link href={href}>{content}</Link> : content;
 }
