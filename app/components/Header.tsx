@@ -106,11 +106,11 @@ const MEGA_DATA: MegaCategory[] = [
       },
       { title: "Juegos", items: [{ label: "Juegos", href: "/categorias/gamer/juegos" }] },
       {
-        title: "Laptops gamers",
+        title: "Teclados, mouses y más",
         items: [
           {
-            label: "Laptops gamers",
-            href: "/categorias/gamer/laptops-gamers",
+            label: "Teclados, mouses y más",
+            href: "/categorias/gamer/accesorios",
           },
         ],
       },
