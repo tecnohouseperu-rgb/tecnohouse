@@ -15,11 +15,11 @@ type Props = {
 
 const FALLBACK = "/placeholder-product.png";
 
-// 🔥 Convierte URL pública de Supabase → Cloudflare R2
-function toCdnUrl(url?: string | null) {
-  if (!url) return url;
-
+// ✅ Siempre devuelve string (nunca null/undefined)
+function toCdnUrl(url: string): string {
   const CDN_BASE = process.env.NEXT_PUBLIC_CDN_BASE_URL;
+
+  // Si no hay CDN, devuelve igual
   if (!CDN_BASE) return url;
 
   const marker = "/storage/v1/object/public/";
@@ -28,9 +28,7 @@ function toCdnUrl(url?: string | null) {
   // Si no es Supabase, no tocar
   if (i === -1) return url;
 
-  // Ej: products/audio/audifonos/imagen.jpg
-  const pathAfter = url.substring(i + marker.length);
-
+  const pathAfter = url.substring(i + marker.length); // "products/..."
   return `${CDN_BASE.replace(/\/$/, "")}/${pathAfter}`;
 }
 
@@ -44,10 +42,9 @@ export function ProductImage({
   sizes,
   fill = false,
 }: Props) {
-  const safeSrc =
-    src && src.trim().length > 0 ? toCdnUrl(src) : FALLBACK;
+  const trimmed = (src ?? "").trim();
+  const safeSrc: string = trimmed.length > 0 ? toCdnUrl(trimmed) : FALLBACK;
 
-  // ✅ Modo fill
   if (fill) {
     return (
       <Image
