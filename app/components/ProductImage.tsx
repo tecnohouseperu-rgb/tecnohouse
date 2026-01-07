@@ -15,21 +15,31 @@ type Props = {
 
 const FALLBACK = "/placeholder-product.png";
 
-// ✅ Siempre devuelve string (nunca null/undefined)
+// 🔥 Convierte cualquier URL vieja → CDN estable
 function toCdnUrl(url: string): string {
   const CDN_BASE = process.env.NEXT_PUBLIC_CDN_BASE_URL;
-
-  // Si no hay CDN, devuelve igual
   if (!CDN_BASE) return url;
 
+  const cleanCdn = CDN_BASE.replace(/\/$/, "");
+
+  // 1️⃣ r2.dev → cdn.tecnohouseperu.com
+  if (url.startsWith("https://pub-060e2f29cf544718ba7c53345f2ab55a.r2.dev/")) {
+    return url.replace(
+      "https://pub-060e2f29cf544718ba7c53345f2ab55a.r2.dev",
+      cleanCdn
+    );
+  }
+
+  // 2️⃣ Supabase public storage → cdn.tecnohouseperu.com
   const marker = "/storage/v1/object/public/";
   const i = url.indexOf(marker);
+  if (i !== -1) {
+    const pathAfter = url.substring(i + marker.length); // products/...
+    return `${cleanCdn}/${pathAfter}`;
+  }
 
-  // Si no es Supabase, no tocar
-  if (i === -1) return url;
-
-  const pathAfter = url.substring(i + marker.length); // "products/..."
-  return `${CDN_BASE.replace(/\/$/, "")}/${pathAfter}`;
+  // 3️⃣ Ya es CDN (o cualquier otra URL válida)
+  return url;
 }
 
 export function ProductImage({
@@ -43,7 +53,8 @@ export function ProductImage({
   fill = false,
 }: Props) {
   const trimmed = (src ?? "").trim();
-  const safeSrc: string = trimmed.length > 0 ? toCdnUrl(trimmed) : FALLBACK;
+  const safeSrc: string =
+    trimmed.length > 0 ? toCdnUrl(trimmed) : FALLBACK;
 
   if (fill) {
     return (
