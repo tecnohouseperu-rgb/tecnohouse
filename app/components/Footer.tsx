@@ -37,7 +37,7 @@ export default function Footer() {
             <li className="flex items-center gap-3">
               <Phone className="size-4 text-neutral-400" />
               <Link
-                href="https://wa.me/51908577861"
+                href="https://wa.me/51908631949"
                 className="hover:text-white transition-colors"
                 target="_blank"
               >

@@ -215,11 +215,11 @@ export default function PoliticaPrivacidadPage() {
               <li>
                 WhatsApp:{" "}
                 <Link
-                  href="https://wa.me/51908577861"
+                  href="https://wa.me/51908631949"
                   className="underline"
                   target="_blank"
                 >
-                  +51 908 577 861
+                  +51 908 631 949
                 </Link>
               </li>
               <li>

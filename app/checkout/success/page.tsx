@@ -222,12 +222,12 @@ export default function SuccessPage() {
             <span>
               WhatsApp:{" "}
               <a
-                href="https://wa.me/51908577861"
+                href="https://wa.me/51908631949"
                 target="_blank"
                 rel="noreferrer"
                 className="font-medium text-gray-700 hover:underline"
               >
-                +51 908 577 861
+                +51 908 631 949
               </a>
             </span>
             <span>

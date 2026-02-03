@@ -234,11 +234,11 @@ export default function TerminosCondicionesPage() {
               <li>
                 WhatsApp:{" "}
                 <Link
-                  href="https://wa.me/51908577861"
+                  href="https://wa.me/51908631949"
                   target="_blank"
                   className="underline"
                 >
-                  +51 908577861
+                  +51 908631949
                 </Link>
               </li>
               <li>

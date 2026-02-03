@@ -254,11 +254,11 @@ export default function BasesLegalesPage() {
               <li>
                 WhatsApp:{" "}
                 <Link
-                  href="https://wa.me/51908577861"
+                  href="https://wa.me/51908631949"
                   target="_blank"
                   className="underline"
                 >
-                  +51 908 577 861
+                  +51 908 631 949
                 </Link>
               </li>
               <li>
