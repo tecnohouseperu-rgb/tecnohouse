@@ -6,7 +6,7 @@ import { initMercadoPago, Wallet } from "@mercadopago/sdk-react";
 import { ProductImage } from "@/app/components/ProductImage";
 
 // ✅ A) Importa el modal Socio (arriba del archivo)
-import SocioPaymentForm from "@/app/components/SocioPaymentForm";
+import SocioPaymentForm from "../components/SocioPaymentForm";
 
 // ====== Tipos / helpers ======
 type UbigeoTree = Array<{
