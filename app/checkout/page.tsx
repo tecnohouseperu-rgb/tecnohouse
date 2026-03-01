@@ -5,6 +5,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { initMercadoPago, Wallet } from "@mercadopago/sdk-react";
 import { ProductImage } from "@/app/components/ProductImage";
 
+// ✅ A) Importa el modal Socio (arriba del archivo)
+import SocioPaymentForm from "@/app/components/SocioPaymentForm";
+
 // ====== Tipos / helpers ======
 type UbigeoTree = Array<{
   departamento: string;
@@ -245,6 +248,10 @@ export default function Checkout() {
   const orderIdRef = useRef<string | null>(null);
   const [readyToPay, setReadyToPay] = useState(false);
 
+  // ✅ B) Estados Modal Socio (fallback / alternativo)
+  const [openSocioPay, setOpenSocioPay] = useState(false);
+  const [createdOrderId, setCreatedOrderId] = useState<string>("");
+
   // ===== cargar ubigeo
   useEffect(() => {
     (async () => {
@@ -389,6 +396,14 @@ export default function Checkout() {
   const handleTel = (v: string) =>
     setTelefono(v.replace(/\D/g, "").slice(0, 9));
 
+  // ✅ C) Helper para abrir el modal con un orderId “seguro”
+  const openSocio = () => {
+    // ✅ si ya tienes orderId de tu /api/order úsalo; si no, uno temporal
+    const oid = String(orderIdRef.current || `TH-${Date.now()}`);
+    setCreatedOrderId(oid);
+    setOpenSocioPay(true);
+  };
+
   // ===== submit: crea la ORDEN; luego se habilita Wallet
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -484,10 +499,7 @@ export default function Checkout() {
           })),
         };
 
-        localStorage.setItem(
-          "last-order-summary",
-          JSON.stringify(orderSummary)
-        );
+        localStorage.setItem("last-order-summary", JSON.stringify(orderSummary));
       } catch {
         // si falla el localStorage no rompemos el flujo
       }
@@ -1190,10 +1202,15 @@ export default function Checkout() {
                         direccion,
                         referencia,
                       }}
+                      // ✅ D) Cambia tu onPrefError para abrir Socio en vez de resetear
                       onPrefError={(m) => {
-                        setMsg("Error: " + m);
+                        setMsg(
+                          "Mercado Pago no disponible. Te abrimos el pago alternativo."
+                        );
                         setMsgType("err");
-                        setReadyToPay(false);
+                        openSocio();
+                        // si quieres mantener el reset, descomenta:
+                        // setReadyToPay(false);
                       }}
                     />
                   </div>
@@ -1205,6 +1222,17 @@ export default function Checkout() {
               )}
             </div>
           </div>
+
+          {/* (Opcional) Si quieres un botón manual para abrir Socio aunque MP funcione */}
+          {/* 
+          <button
+            type="button"
+            onClick={openSocio}
+            className="w-full rounded-xl border bg-white py-2 text-sm"
+          >
+            Pagar con Socio (alternativo)
+          </button>
+          */}
         </div>
       </section>
 
@@ -1297,6 +1325,14 @@ export default function Checkout() {
           </div>
         </div>
       )}
+
+      {/* ✅ F) Renderiza el modal al final del return (antes de </main>) */}
+      <SocioPaymentForm
+        open={openSocioPay}
+        onClose={() => setOpenSocioPay(false)}
+        total={grandTotal}
+        orderId={createdOrderId}
+      />
     </main>
   );
 }
