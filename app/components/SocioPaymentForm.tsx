@@ -119,16 +119,20 @@ ${escapeHtml(form.email)}
       }
 
       // 2) marcar socio
-      const r2 = await fetch("/api/orders/mark-socio", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ external_reference: orderId }),
-      });
+      const r2 = await fetch("/api/order/mark-socio", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    external_reference: orderId,
+    orderId: orderId,
+    id: orderId,
+  }),
+});
 
-      if (!r2.ok) {
-        const d = await r2.json().catch(() => ({}));
-        throw new Error(d?.error || "No se pudo actualizar la orden");
-      }
+const d2 = await r2.json().catch(() => ({}));
+if (!r2.ok) {
+  throw new Error(d2?.error || d2?.message || "No se pudo actualizar la orden");
+}
 
       setLoading(false);
       setStep("done");
