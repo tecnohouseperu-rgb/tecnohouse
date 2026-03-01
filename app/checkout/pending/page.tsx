@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { supabaseServer } from "@/lib/supabase/server";
+import { createSupabaseServer } from "@/lib/supabase/server";
 
 function money(n: any) {
   const v = Number(n || 0);
@@ -23,7 +23,6 @@ function fmtDatePe(value: any) {
 function shipLabel(order: any) {
   const dep = String(order?.departamento || "").trim().toUpperCase();
   const mode = String(order?.shipping_mode || "").trim().toLowerCase();
-
   const isLimaCallao = dep === "LIMA" || dep === "CALLAO";
 
   if (isLimaCallao && mode === "express") return "Lima/Callao · Express (mismo día)";
@@ -36,12 +35,30 @@ function statusPill(orderStatus: any) {
   const s = String(orderStatus || "").toLowerCase();
 
   if (s.includes("approved") || s.includes("paid") || s === "completed") {
-    return { label: "Aprobado", bg: "bg-emerald-50", ring: "ring-emerald-200", text: "text-emerald-700", dot: "bg-emerald-600" };
+    return {
+      label: "Aprobado",
+      bg: "bg-emerald-50",
+      ring: "ring-emerald-200",
+      text: "text-emerald-700",
+      dot: "bg-emerald-600",
+    };
   }
   if (s.includes("rejected") || s.includes("cancel")) {
-    return { label: "Rechazado", bg: "bg-red-50", ring: "ring-red-200", text: "text-red-700", dot: "bg-red-600" };
+    return {
+      label: "Rechazado",
+      bg: "bg-red-50",
+      ring: "ring-red-200",
+      text: "text-red-700",
+      dot: "bg-red-600",
+    };
   }
-  return { label: "En verificación", bg: "bg-amber-50", ring: "ring-amber-200", text: "text-amber-700", dot: "bg-amber-600" };
+  return {
+    label: "En verificación",
+    bg: "bg-amber-50",
+    ring: "ring-amber-200",
+    text: "text-amber-700",
+    dot: "bg-amber-600",
+  };
 }
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
@@ -63,19 +80,20 @@ export default async function PendingPage({
   const { external_reference } = await searchParams;
   if (!external_reference) return null;
 
-  // ✅ En TecnoHouse: external_reference = ID de orders (int8)
+  // ✅ En tu proyecto: external_reference = orders.id (int8)
   const orderId = Number(external_reference);
   if (!Number.isFinite(orderId)) return null;
 
-  const sb = supabaseServer();
+  // ✅ TU HELPER ES ASYNC => hay que await
+  const sb = await createSupabaseServer();
 
-  const { data: order } = await sb
+  const { data: order, error: orderErr } = await sb
     .from("orders")
     .select("*")
     .eq("id", orderId)
     .single();
 
-  if (!order) {
+  if (!order || orderErr) {
     return (
       <div className="min-h-[70vh] bg-[#F6F7F9]">
         <div className="mx-auto max-w-3xl px-5 py-14">
@@ -91,10 +109,16 @@ export default async function PendingPage({
             </p>
 
             <div className="mt-6 grid grid-cols-1 gap-3">
-              <Link className="rounded-xl bg-white text-black px-4 py-3 text-center text-sm font-semibold" href="/checkout">
+              <Link
+                className="rounded-xl bg-white text-black px-4 py-3 text-center text-sm font-semibold"
+                href="/checkout"
+              >
                 Volver al checkout
               </Link>
-              <Link className="rounded-xl border border-white/20 bg-transparent px-4 py-3 text-center text-sm font-semibold text-white" href="/">
+              <Link
+                className="rounded-xl border border-white/20 bg-transparent px-4 py-3 text-center text-sm font-semibold text-white"
+                href="/"
+              >
                 Seguir comprando
               </Link>
             </div>
@@ -104,7 +128,6 @@ export default async function PendingPage({
     );
   }
 
-  // ✅ Items vienen de order_items
   const { data: orderItems } = await sb
     .from("order_items")
     .select("*")
@@ -134,7 +157,9 @@ export default async function PendingPage({
             </div>
 
             <div className="flex flex-col items-start gap-2 md:items-end">
-              <span className={`inline-flex items-center gap-2 rounded-full ${pill.bg} px-3 py-1 text-[12px] font-semibold ${pill.text} ring-1 ${pill.ring}`}>
+              <span
+                className={`inline-flex items-center gap-2 rounded-full ${pill.bg} px-3 py-1 text-[12px] font-semibold ${pill.text} ring-1 ${pill.ring}`}
+              >
                 <span className={`h-2 w-2 rounded-full ${pill.dot} opacity-70`} />
                 {pill.label}
               </span>
@@ -145,7 +170,7 @@ export default async function PendingPage({
           </div>
 
           <div className="mt-6 rounded-2xl bg-white/10 p-4 text-sm text-white/80">
-            Tip: espera 1–3 minutos y presiona “Actualizar estado”. MercadoPago/Socio a veces confirma en segundo plano.
+            Tip: espera 1–3 minutos y presiona “Actualizar estado”.
           </div>
         </div>
 
@@ -155,7 +180,7 @@ export default async function PendingPage({
             <Card title="Productos">
               <div className="space-y-4">
                 {items.map((it: any) => {
-                  // Ajusta aquí si tu order_items usa otros nombres
+                  // ✅ Ajusta si tu order_items usa otros nombres
                   const title = it.title || it.name || it.slug || "Producto";
                   const img = it.image || it.main_image || it.img || null;
 
