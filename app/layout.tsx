@@ -9,6 +9,7 @@ import TopBanner from "./components/TopBanner";
 import { CartProvider } from "./components/cart-provider";
 import CartToast from "./components/CartToast";
 import { NavidadBanner } from "./components/NavidadBanner"; // 🎄 NUEVO
+import SecurityTracker from "./components/security/SecurityTracker"; // 🔐 NUEVO
 
 import Script from "next/script"; // 👈 IMPORTANTE
 
@@ -24,6 +25,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        
+        {/* 🔐 Security Tracker (ANTI BOTS / TRACKING) */}
+        <SecurityTracker />
+
         {/* ✅ Pixel de Meta: solo en producción si quieres */}
         {process.env.NODE_ENV === "production" && (
           <>
